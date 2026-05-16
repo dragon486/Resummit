@@ -7,7 +7,7 @@ const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
 let redis: Redis | null = null;
 
-if (REDIS_URL && REDIS_TOKEN) {
+if (REDIS_URL && REDIS_TOKEN && REDIS_URL.startsWith('https://')) {
   try {
     redis = new Redis({
       url: REDIS_URL,
@@ -15,9 +15,11 @@ if (REDIS_URL && REDIS_TOKEN) {
     });
   } catch (e) {
     console.error("[CACHE] Failed to initialize Redis:", e);
+    redis = null;
   }
 } else {
-  console.warn("[CACHE] Redis credentials missing. Cache is disabled (running in-memory mock).");
+  console.warn("[CACHE] Redis credentials missing or invalid. Cache is disabled.");
+  redis = null;
 }
 
 /**
