@@ -126,74 +126,151 @@ export async function fetchUserRepos(accessToken: string): Promise<GithubRepo[]>
 }
 
 const SKILL_MAP: Record<string, string> = {
-  // Languages
+  // Languages — only mainstream ones worth listing on a CV
   "typescript": "TypeScript",
   "javascript": "JavaScript",
   "python": "Python",
   "java": "Java",
   "c++": "C++",
+  "c": "C",
   "go": "Go",
   "rust": "Rust",
-  
+  "kotlin": "Kotlin",
+  "swift": "Swift",
+  "dart": "Dart",
+
   // Frameworks/Libraries
   "react": "React",
   "next": "Next.js",
   "node": "Node.js",
   "express": "Express.js",
   "flask": "Flask",
+  "fastapi": "FastAPI",
+  "django": "Django",
   "tensorflow": "TensorFlow",
   "pytorch": "PyTorch",
-  "fastapi": "FastAPI",
+  "streamlit": "Streamlit",
   "tailwind": "Tailwind CSS",
   "prisma": "Prisma",
-  
-  // Tools/Architecture
+  "vue": "Vue.js",
+  "angular": "Angular",
+
+  // Tools/Cloud/DB
   "postgres": "PostgreSQL",
+  "postgresql": "PostgreSQL",
   "mongodb": "MongoDB",
+  "mysql": "MySQL",
+  "redis": "Redis",
+  "firebase": "Firebase",
   "aws": "AWS",
   "gcp": "GCP",
   "docker": "Docker",
   "kubernetes": "Kubernetes",
-  "rest api": "REST APIs",
-  "microservices": "Microservices",
-  "ci/cd": "CI/CD",
-  "auth": "Authentication",
   "graphql": "GraphQL",
-  "redis": "Redis",
-  "mysql": "MySQL",
   "git": "Git",
 };
 
+const SKILL_CATEGORIES: Record<string, "languages" | "frameworks" | "tools"> = {
+  "JavaScript": "languages", "TypeScript": "languages", "Python": "languages",
+  "Java": "languages", "C++": "languages", "C": "languages", "Go": "languages",
+  "Rust": "languages", "Kotlin": "languages", "Swift": "languages", "Dart": "languages",
+  "React": "frameworks", "Next.js": "frameworks", "Node.js": "frameworks",
+  "Express.js": "frameworks", "Flask": "frameworks", "FastAPI": "frameworks",
+  "Django": "frameworks", "TensorFlow": "frameworks", "PyTorch": "frameworks",
+  "Streamlit": "frameworks", "Tailwind CSS": "frameworks", "Prisma": "frameworks",
+  "Vue.js": "frameworks", "Angular": "frameworks",
+  "PostgreSQL": "tools", "MongoDB": "tools", "MySQL": "tools", "Redis": "tools",
+  "Firebase": "tools", "AWS": "tools", "GCP": "tools", "Docker": "tools",
+  "Kubernetes": "tools", "GraphQL": "tools", "Git": "tools",
+};
+
+/**
+ * Weighted skill extraction.
+ * A skill must appear in 2+ repos (as primary language or in description/topics)
+ * to be included. This prevents listing Rust/Haskell from a single tutorial repo.
+ * Each category capped at 8.
+ */
 export function extractDeterministicSkills(repos: GithubRepo[]) {
-  const foundSkills = new Set<string>();
+  // skill → number of repos it appears in
+  const skillFrequency: Record<string, number> = {};
 
   for (const repo of repos) {
-    if (repo.language && SKILL_MAP[repo.language.toLowerCase()]) {
-      foundSkills.add(SKILL_MAP[repo.language.toLowerCase()]);
+    const seenInThisRepo = new Set<string>();
+
+    // Primary language counts strongly (weight 2 = equivalent to 2 repos)
+    if (repo.language) {
+      const mapped = SKILL_MAP[repo.language.toLowerCase()];
+      if (mapped && !seenInThisRepo.has(mapped)) {
+        skillFrequency[mapped] = (skillFrequency[mapped] || 0) + 2;
+        seenInThisRepo.add(mapped);
+      }
     }
-    
-    const desc = (repo.description || "").toLowerCase();
+
+    // Description and topics count (weight 1 each)
+    const text = [
+      repo.description || "",
+      ...(repo.topics || []),
+    ].join(" ").toLowerCase();
+
     for (const [key, formalName] of Object.entries(SKILL_MAP)) {
-      // Escape special regex characters (like + in C++)
-      const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const wordBoundaryRegex = new RegExp(`\\b${escapedKey}\\b`, 'i');
-      if (wordBoundaryRegex.test(desc)) {
-        foundSkills.add(formalName);
+      if (seenInThisRepo.has(formalName)) continue;
+      const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const re = new RegExp(`\\b${escapedKey}\\b`, "i");
+      if (re.test(text)) {
+        skillFrequency[formalName] = (skillFrequency[formalName] || 0) + 1;
+        seenInThisRepo.add(formalName);
       }
     }
   }
 
-  const categorizations: { languages: string[], frameworks: string[], tools: string[] } = { languages: [], frameworks: [], tools: [] };
-  const categories: Record<string, "languages" | "frameworks" | "tools"> = {
-    "JavaScript": "languages", "TypeScript": "languages", "Python": "languages", "Java": "languages", "C++": "languages", "Go": "languages", "Rust": "languages",
-    "React": "frameworks", "Next.js": "frameworks", "Node.js": "frameworks", "Express.js": "frameworks", "Flask": "frameworks", "TensorFlow": "frameworks", "PyTorch": "frameworks", "FastAPI": "frameworks",
-    "PostgreSQL": "tools", "MongoDB": "tools", "AWS": "tools", "GCP": "tools", "Docker": "tools", "Kubernetes": "tools", "REST APIs": "tools", "Microservices": "tools", "CI/CD": "tools", "Authentication": "tools", "GraphQL": "tools", "Redis": "tools", "MySQL": "tools", "Tailwind CSS": "tools", "Prisma": "tools", "Git": "tools",
+  // Only include skills that appear in the equivalent of 2+ repos (frequency >= 2)
+  const qualifiedSkills = Object.entries(skillFrequency)
+    .filter(([, freq]) => freq >= 2)
+    .sort((a, b) => b[1] - a[1]) // most-used first
+    .map(([skill]) => skill);
+
+  const result: { languages: string[]; frameworks: string[]; tools: string[] } = {
+    languages: [],
+    frameworks: [],
+    tools: [],
   };
 
-  for (const skill of foundSkills) {
-    const cat = categories[skill] || "tools";
-    categorizations[cat].push(skill);
+  for (const skill of qualifiedSkills) {
+    const cat = SKILL_CATEGORIES[skill] || "tools";
+    if (result[cat].length < 8) { // cap each category at 8
+      result[cat].push(skill);
+    }
   }
 
-  return categorizations;
+  return result;
 }
+
+/**
+ * Detect common CV text quality issues.
+ * Returns a list of human-readable warnings.
+ */
+export function validateCVText(text: string): string[] {
+  const issues: string[] = [];
+
+  // Duplicate consecutive words like "Software Software"
+  const dupMatch = text.match(/\b(\w+)\s+\1\b/gi);
+  if (dupMatch) {
+    issues.push(`Duplicate word(s): ${[...new Set(dupMatch)].join(", ")}`);
+  }
+
+  // Generic placeholder phrases
+  const placeholders = [
+    "Achieved X by implementing Y",
+    "Lorem ipsum",
+    "Your Name",
+    "Company Name",
+  ];
+  for (const ph of placeholders) {
+    if (text.toLowerCase().includes(ph.toLowerCase())) {
+      issues.push(`Placeholder text found: "${ph}"`);
+    }
+  }
+
+  return issues;
+}
+

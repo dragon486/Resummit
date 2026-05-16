@@ -249,6 +249,7 @@ export function EditorClient({
   const [isSyncing, setIsSyncing] = useState(false);
   const [generatingExpBullets, setGeneratingExpBullets] = useState<number | null>(null);
   const [expContext, setExpContext] = useState<Record<number, string>>({});
+  const [cvWarnings, setCvWarnings] = useState<string[]>([]); // CV quality warnings from save API
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isDirty = useRef(false);
 
@@ -265,6 +266,12 @@ export function EditorClient({
         tools: dedupeArr(s?.tools || []),
       });
 
+      // Auto-fix duplicate words in experience titles before saving
+      const cleanedExperience = experience.map(exp => ({
+        ...exp,
+        title: (exp.title || "").replace(/\b(\w+)\s+\1\b/gi, "$1").trim(),
+      }));
+
       const res = await fetch("/api/cv/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -274,7 +281,7 @@ export function EditorClient({
             personalInfo,
             summary,
             skills: dedupeSkills(skills),
-            experience,
+            experience: cleanedExperience,
             projects,
             education,
             atsScore: atsData?.score || 0
@@ -282,12 +289,19 @@ export function EditorClient({
         }),
       });
       if (!res.ok) throw new Error("Save failed");
+      const saved = await res.json();
+      // Surface any CV quality warnings
+      if (saved.warnings && saved.warnings.length > 0) {
+        setCvWarnings(saved.warnings);
+        setTimeout(() => setCvWarnings([]), 8000); // auto-dismiss after 8s
+      }
       setSaveStatus("saved");
       setTimeout(() => setSaveStatus("idle"), 2500);
     } catch {
       setSaveStatus("error");
     }
   }, [versionId, personalInfo, summary, skills, experience, projects, education, atsData, isSyncing]);
+
 
 
   useEffect(() => {
@@ -629,6 +643,24 @@ export function EditorClient({
     );
   };
 
+  // ── CV quality warnings banner ──
+  const CvWarningBanner = () => {
+    if (cvWarnings.length === 0) return null;
+    return (
+      <div className="mx-4 mb-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2">
+        <AlertTriangle className="w-3.5 h-3.5 text-amber-400 mt-0.5 shrink-0" />
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-1">CV Quality Issues Detected</p>
+          {cvWarnings.map((w, i) => (
+            <p key={i} className="text-[10px] text-amber-300/70">{w}</p>
+          ))}
+        </div>
+        <button onClick={() => setCvWarnings([])} className="ml-auto text-amber-500/50 hover:text-amber-400">
+          <X className="w-3 h-3" />
+        </button>
+      </div>
+    );
+  };
 
   // ─────────────────────────────────────────────
   // Tab: Profile
@@ -1238,6 +1270,9 @@ export function EditorClient({
             <SaveIndicator />
           </div>
         </header>
+
+        {/* CV Quality Warnings */}
+        <CvWarningBanner />
 
         {/* Global Action Bar */}
         <div className="px-6 py-4 border-b border-white/[0.03] flex flex-col gap-4 bg-white/[0.01]">

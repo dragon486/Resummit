@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/server/prisma";
+import { validateCVText } from "@/lib/github";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -56,7 +57,21 @@ export async function POST(req: Request) {
       }
     });
 
-    return NextResponse.json({ success: true });
+    // Run CV quality validation
+    const allText = [
+      data.summary,
+      ...data.experience.flatMap((e: any) => [e.title, e.company, ...(e.bullets || [])]),
+      ...data.projects.flatMap((p: any) => [p.title, ...(p.highlights || [])]),
+    ].join(" ");
+    const warnings = validateCVText(allText);
+
+    // Auto-fix duplicate words in experience titles (e.g. "Software Software" → "Software")
+    const fixedExperience = data.experience.map((exp: any) => ({
+      ...exp,
+      title: (exp.title || "").replace(/\b(\w+)\s+\1\b/gi, "$1").trim(),
+    }));
+
+    return NextResponse.json({ success: true, warnings });
   } catch (error: any) {
     if (error instanceof z.ZodError) {
       console.error("AutoSave Validation Error:", JSON.stringify(error.errors, null, 2));
