@@ -127,7 +127,6 @@ export async function fetchUserRepos(accessToken: string): Promise<GithubRepo[]>
 
 const SKILL_MAP: Record<string, string> = {
   // Languages — only mainstream ones worth listing on a CV
-  // Languages
   "python": "Python",
   "javascript": "JavaScript",
   "typescript": "TypeScript",
@@ -137,15 +136,12 @@ const SKILL_MAP: Record<string, string> = {
   "c": "C",
   "go": "Go",
   "golang": "Go",
-  "rust": "Rust",
   "kotlin": "Kotlin",
   "swift": "Swift",
   "dart": "Dart",
   "ruby": "Ruby",
   "php": "PHP",
   "scala": "Scala",
-  "haskell": "Haskell",
-  "lua": "Lua",
   "shell": "Shell",
   "bash": "Bash",
   "html": "HTML/CSS",
@@ -212,8 +208,8 @@ const SKILL_MAP: Record<string, string> = {
 const SKILL_CATEGORIES: Record<string, "languages" | "frameworks" | "tools"> = {
   "JavaScript": "languages", "TypeScript": "languages", "Python": "languages",
   "Java": "languages", "C++": "languages", "C": "languages", "Go": "languages",
-  "Rust": "languages", "Kotlin": "languages", "Swift": "languages", "Dart": "languages",
-  "Ruby": "languages", "PHP": "languages", "Scala": "languages", "Haskell": "languages",
+  "Kotlin": "languages", "Swift": "languages", "Dart": "languages",
+  "Ruby": "languages", "PHP": "languages", "Scala": "languages",
   "HTML/CSS": "languages", "Shell": "languages", "Bash": "languages",
 
   "React": "frameworks", "Next.js": "frameworks", "Node.js": "frameworks",

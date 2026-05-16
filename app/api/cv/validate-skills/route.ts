@@ -133,40 +133,26 @@ export async function POST(req: Request) {
       tools: repoBasedSkills.tools.filter(s => !currentLower.has(s.toLowerCase())),
     };
 
-    // Cleaned set
-    const CATEGORIES: Record<string, "languages" | "frameworks" | "tools"> = {
-      "JavaScript": "languages", "TypeScript": "languages", "Python": "languages",
-      "Java": "languages", "C++": "languages", "C": "languages", "Go": "languages",
-      "Rust": "languages", "Kotlin": "languages", "Swift": "languages", "Dart": "languages",
-      "HTML/CSS": "languages", "HTML": "languages", "CSS": "languages",
-      "React": "frameworks", "Next.js": "frameworks", "Node.js": "frameworks",
-      "Express.js": "frameworks", "Flask": "frameworks", "FastAPI": "frameworks",
-      "Django": "frameworks", "TensorFlow": "frameworks", "PyTorch": "frameworks",
-      "Streamlit": "frameworks", "Tailwind CSS": "frameworks", "Prisma": "frameworks",
-      "Vue.js": "frameworks", "Angular": "frameworks", "Spring Boot": "frameworks",
-      "PostgreSQL": "tools", "MongoDB": "tools", "MySQL": "tools", "Redis": "tools",
-      "Firebase": "tools", "AWS": "tools", "GCP": "tools", "Docker": "tools",
-      "Kubernetes": "tools", "GraphQL": "tools", "Git": "tools",
-      "OpenCV": "frameworks", "Jupyter Notebook": "tools", "Slack": "tools", "Boltic": "tools"
-    };
-
+    // Build clean verified skill set split by category
+    const { SKILL_CATEGORIES } = await import("@/lib/github");
+    
     const cleanedSkills: { languages: string[]; frameworks: string[]; tools: string[] } = {
       languages: [], frameworks: [], tools: []
     };
 
-    for (const skill of verified) {
-      const cat = CATEGORIES[skill] || "tools";
+    // Helper to add skill to correct category
+    const addSkill = (skill: string) => {
+      const cat = SKILL_CATEGORIES[skill] || "tools";
       if (!cleanedSkills[cat].find(s => s.toLowerCase() === skill.toLowerCase())) {
         cleanedSkills[cat].push(skill);
       }
-    }
+    };
+
+    // First, add existing verified skills
+    for (const skill of verified) addSkill(skill);
     
-    for (const skill of aiSkills) {
-      const cat = CATEGORIES[skill] || "tools";
-      if (!cleanedSkills[cat].find(s => s.toLowerCase() === skill.toLowerCase())) {
-        cleanedSkills[cat].push(skill);
-      }
-    }
+    // Then, add AI suggested skills
+    for (const skill of aiSkills) addSkill(skill);
 
     return NextResponse.json({
       verified,
