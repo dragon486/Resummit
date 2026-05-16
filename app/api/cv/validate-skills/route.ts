@@ -24,9 +24,23 @@ export async function POST(req: Request) {
     const { currentSkills } = await req.json();
 
     // Fetch stored repos from GitHubData
-    const githubData = await prisma.gitHubData.findUnique({
+    let githubData = await prisma.gitHubData.findUnique({
       where: { userId: session.user.id },
     });
+
+    const token = (session.user as any).accessToken || githubData?.accessToken;
+
+    if ((!githubData?.repositories || (githubData.repositories as any).length === 0) && token) {
+      console.log("[VALIDATE-SKILLS] No data found but token exists. Triggering auto-sync...");
+      // Import runSmartSync dynamically to avoid circular deps if any
+      const { runSmartSync } = await import("@/lib/suggestionEngine");
+      await runSmartSync(session.user.id, token);
+      
+      // Re-fetch data after sync
+      githubData = await prisma.gitHubData.findUnique({
+        where: { userId: session.user.id },
+      });
+    }
 
     if (!githubData?.repositories) {
       return NextResponse.json({

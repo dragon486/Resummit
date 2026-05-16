@@ -499,10 +499,10 @@ export function EditorClient({
   };
 
   // ── Skill Validation (cross-ref against real repos) ──
-  const handleValidateSkills = async (autoRetry = true) => {
+  // ── Skill Validation (cross-ref against real repos) ──
+  const handleValidateSkills = async () => {
     setValidatingSkills(true);
-    // Clear old state so the new loader/results show fresh
-    if (autoRetry) setSkillValidation(null); 
+    setSkillValidation(null); // Force show the premium loader immediately
     try {
       const res = await fetch("/api/cv/validate-skills", {
         method: "POST",
@@ -511,19 +511,8 @@ export function EditorClient({
       });
       const d = await res.json();
       
-      if (res.ok && !d.requiresSync) {
+      if (res.ok) {
         setSkillValidation(d);
-      } else if (d.requiresSync) {
-        // If we have an access token, try to sync automatically instead of showing error
-        if (accessToken && autoRetry) {
-          console.log("[AUTO-SYNC] Triggering background GitHub sync...");
-          const syncRes = await fetch("/api/github/sync");
-          if (syncRes.ok) {
-             // Retry validation once sync is finished
-             return handleValidateSkills(false);
-          }
-        }
-        setSkillValidation({ ...d, unverified: [], verified: [], suggested: { languages: [], frameworks: [], tools: [] } });
       }
     } catch {
       /* silent background failure */
