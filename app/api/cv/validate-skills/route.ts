@@ -76,7 +76,22 @@ export async function POST(req: Request) {
       }
     });
     
-    const aiSkills = aiSuggestions.map(s => s.title);
+    // Extract actual skill names from proposedData (JSON) or fallback to title
+    const aiSkills: string[] = [];
+    for (const sug of aiSuggestions) {
+      try {
+        const data = JSON.parse(sug.proposedData);
+        const skills = [
+          ...(data.languages || []),
+          ...(data.frameworks || []),
+          ...(data.tools || [])
+        ];
+        aiSkills.push(...skills);
+      } catch (e) {
+        // Fallback: strip "New Skills: " prefix if title is used
+        aiSkills.push(sug.title.replace(/^New Skills:\s+/i, "").replace(/\.\.\.$/, ""));
+      }
+    }
 
     // Run weighted skill extraction on real repos
     const repoBasedSkills = extractDeterministicSkills(repos);

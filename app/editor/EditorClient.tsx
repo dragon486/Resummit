@@ -513,9 +513,13 @@ export function EditorClient({
       if (res.ok) {
         setSkillValidation(d);
         
-        // AUTO-INTEGRITY: Force purge all unverified junk and apply real mastery
-        if (d.unverified?.length > 0 || (d.cleanedSkills && Object.values(d.cleanedSkills).flat().length > 0)) {
-           console.log("[INTEGRITY] Purging junk and syncing database mastery...");
+        // AUTO-INTEGRITY: If we have junk to purge or new skills to merge, do it automatically.
+        const currentCount = Object.values(skills).flat().length;
+        const newCount = Object.values(d.cleanedSkills).flat().length;
+        const hasChanges = d.unverified?.length > 0 || currentCount !== newCount;
+
+        if (hasChanges) {
+           console.log("[INTEGRITY] Automatically syncing database with verified engineering profile...");
            const newSkills = {
              languages: d.cleanedSkills.languages || [],
              frameworks: d.cleanedSkills.frameworks || [],
@@ -523,8 +527,8 @@ export function EditorClient({
            };
            setSkills(newSkills);
            
-           // Automatically save the cleaned state to the database so it sticks
-           const saveRes = await fetch("/api/cv/save", {
+           // Background save to lock in the clean state
+           fetch("/api/cv/save", {
              method: "POST",
              headers: { "Content-Type": "application/json" },
              body: JSON.stringify({ 
@@ -532,8 +536,7 @@ export function EditorClient({
                versionId, 
                updates: { skills: JSON.stringify(newSkills) } 
              }),
-           });
-           if (saveRes.ok) setSaveStatus("saved");
+           }).then(r => { if(r.ok) setSaveStatus("saved"); });
         }
       }
     } catch {

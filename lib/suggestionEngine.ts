@@ -284,7 +284,7 @@ export async function runSmartSync(userId: string, accessToken: string, email?: 
             data: {
               userId: user!.id,
               type: "ADD_SKILL",
-              title: `New Skills: ${skillSummary}${Object.values(filteredSkills).flat().length > 3 ? "..." : ""}`,
+              title: `${skillSummary}${Object.values(filteredSkills).flat().length > 3 ? "..." : ""}`,
               description: `Detected new capabilities from ${repo.name}: ${Object.values(filteredSkills).flat().join(", ")}`,
               proposedData: JSON.stringify(filteredSkills),
               priority: 1,
