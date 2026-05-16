@@ -205,7 +205,7 @@ const SKILL_MAP: Record<string, string> = {
   "jest": "Jest",
 };
 
-const SKILL_CATEGORIES: Record<string, "languages" | "frameworks" | "tools"> = {
+export const SKILL_CATEGORIES: Record<string, "languages" | "frameworks" | "tools"> = {
   "JavaScript": "languages", "TypeScript": "languages", "Python": "languages",
   "Java": "languages", "C++": "languages", "C": "languages", "Go": "languages",
   "Kotlin": "languages", "Swift": "languages", "Dart": "languages",

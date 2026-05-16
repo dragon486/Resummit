@@ -23,8 +23,8 @@ export async function resolveUserId(session: any): Promise<string | null> {
       where: { email },
       select: { id: true }
     });
-    return user?.id || id;
+    return user?.id || null;
   }
 
-  return id;
+  return id?.startsWith('c') ? id : null;
 }

@@ -1,27 +1,24 @@
 import { auth } from "@/auth";
-import { prisma } from "@/lib/server/prisma";
+import { prisma, resolveUserId } from "@/lib/server/prisma";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   const session = await auth();
-  const email = session?.user?.email;
-
-  if (!email) {
-    return NextResponse.json({ error: "Unauthorized - No email found" }, { status: 401 });
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
     const { accessToken } = await req.json();
-
     if (!accessToken) {
       return NextResponse.json({ error: "Token is required" }, { status: 400 });
     }
 
-    const { resolveUserId } = await import("@/lib/server/prisma");
     const userId = await resolveUserId(session);
 
-    if (!userId) {
-      return NextResponse.json({ error: "User record not found in database" }, { status: 404 });
+    if (!userId || !userId.startsWith('c')) {
+      console.error("[GITHUB] Could not resolve a valid database User ID for session:", session.user);
+      return NextResponse.json({ error: "User record not found in database. Please re-login." }, { status: 404 });
     }
 
     await prisma.gitHubData.upsert({
