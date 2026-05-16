@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { prisma, resolveUserId } from "@/lib/server/prisma";
-import { extractDeterministicSkills, SKILL_CATEGORIES } from "@/lib/github";
+import { extractDeterministicSkills } from "@/lib/github";
+import { SKILL_CATEGORIES } from "@/lib/skills-data";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";

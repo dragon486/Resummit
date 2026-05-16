@@ -8,24 +8,18 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   try {
     const userId = await resolveUserId(session);
     if (!userId) return NextResponse.json({ error: "User not found" }, { status: 401 });
-
     const githubData = await prisma.gitHubData.findUnique({ where: { userId } });
     const token = (session.user as any).accessToken || githubData?.accessToken;
-
-    if (!token) return NextResponse.json({ error: "No token found" }, { status: 400 });
-
+    if (!token) return NextResponse.json({ error: "No token" }, { status: 400 });
     const result = await runSmartSync(userId, token, session.user.email || undefined);
     return NextResponse.json({ success: true, result });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
-
-// CACHE BUSTER TO FORCE NEXT.JS TO RE-READ FILE
 // ............................................
 // ............................................
 // ............................................
