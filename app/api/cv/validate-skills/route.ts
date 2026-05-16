@@ -66,6 +66,18 @@ export async function POST(req: Request) {
       });
     }
 
+    // Fetch high-confidence skill suggestions to merge
+    const aiSuggestions = await prisma.suggestion.findMany({
+      where: { 
+        userId: session.user.id, 
+        type: "ADD_SKILL",
+        status: "PENDING",
+        confidence: { gte: 0.7 }
+      }
+    });
+    
+    const aiSkills = aiSuggestions.map(s => s.title);
+
     // Run weighted skill extraction on real repos
     const repoBasedSkills = extractDeterministicSkills(repos);
     const repoSkillSet = new Set([
@@ -102,10 +114,16 @@ export async function POST(req: Request) {
     const verified: string[] = [];
     const unverified: string[] = [];
 
+    // Combine deterministic skills with high-confidence AI detected skills
+    const combinedVerifiedSet = new Set([
+      ...Array.from(repoSkillSet),
+      ...aiSkills.map(s => s.toLowerCase())
+    ]);
+
     for (const skill of allCurrentSkills) {
       const skillLow = skill.toLowerCase();
-      // Verified if backed by ≥2 repos
-      const isVerified = repoSkillSet.has(skillLow);
+      // Verified if backed by repos or AI suggestions
+      const isVerified = combinedVerifiedSet.has(skillLow);
       // Soft-verified: mentioned in at least 1 repo (partial credit)
       const isSoftVerified = rawMentionSet.has(skillLow) || 
         [...rawMentionSet].some(r => r.includes(skillLow) || skillLow.includes(r));
@@ -139,13 +157,23 @@ export async function POST(req: Request) {
       "PostgreSQL": "tools", "MongoDB": "tools", "MySQL": "tools", "Redis": "tools",
       "Firebase": "tools", "AWS": "tools", "GCP": "tools", "Docker": "tools",
       "Kubernetes": "tools", "GraphQL": "tools", "Git": "tools",
+      "OpenCV": "frameworks", "Jupyter Notebook": "tools", "Slack": "tools", "Boltic": "tools"
     };
 
     const cleanedSkills: { languages: string[]; frameworks: string[]; tools: string[] } = {
       languages: [], frameworks: [], tools: []
     };
 
+    // First, add existing verified skills
     for (const skill of verified) {
+      const cat = CATEGORIES[skill] || "tools";
+      if (!cleanedSkills[cat].find(s => s.toLowerCase() === skill.toLowerCase())) {
+        cleanedSkills[cat].push(skill);
+      }
+    }
+    
+    // Then, add AI suggested skills that aren't already there
+    for (const skill of aiSkills) {
       const cat = CATEGORIES[skill] || "tools";
       if (!cleanedSkills[cat].find(s => s.toLowerCase() === skill.toLowerCase())) {
         cleanedSkills[cat].push(skill);

@@ -499,10 +499,9 @@ export function EditorClient({
   };
 
   // ── Skill Validation (cross-ref against real repos) ──
-  // ── Skill Validation (cross-ref against real repos) ──
   const handleValidateSkills = async () => {
     setValidatingSkills(true);
-    setSkillValidation(null); // Force show the premium loader immediately
+    setSkillValidation(null); 
     try {
       const res = await fetch("/api/cv/validate-skills", {
         method: "POST",
@@ -513,6 +512,17 @@ export function EditorClient({
       
       if (res.ok) {
         setSkillValidation(d);
+        
+        // AUTO-INTEGRITY: If we found unverified skills, purge them automatically.
+        // If we found suggested skills, add them automatically.
+        if (d.unverified?.length > 0 || d.cleanedSkills) {
+           console.log("[INTEGRITY] Auto-pruning unverified skills and merging repo-backed mastery...");
+           setSkills({
+             languages: d.cleanedSkills.languages || [],
+             frameworks: d.cleanedSkills.frameworks || [],
+             tools: d.cleanedSkills.tools || [],
+           });
+        }
       }
     } catch {
       /* silent background failure */
