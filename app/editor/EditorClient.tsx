@@ -357,6 +357,20 @@ export function EditorClient({
       .catch((e) => setAtsError(e.message));
   }, []);
 
+  // ── Auto-validate skills whenever Skills tab is opened ──
+  useEffect(() => {
+    if (activeTab !== "skills") return;
+    const totalSkills =
+      (skills.languages?.length || 0) +
+      (skills.frameworks?.length || 0) +
+      (skills.tools?.length || 0);
+    if (totalSkills === 0) return; // nothing to validate
+    // Small delay so the tab transition completes first
+    const t = setTimeout(() => handleValidateSkills(), 500);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
   // ── State update helpers ──
   const updatePersonalInfo = (field: string, val: any) =>
     setPersonalInfo((prev: any) => ({ ...prev, [field]: val }));
@@ -494,13 +508,13 @@ export function EditorClient({
         body: JSON.stringify({ currentSkills: skills }),
       });
       const d = await res.json();
-      if (res.ok) {
+      if (res.ok && !d.requiresSync) {
         setSkillValidation(d);
-      } else {
-        alert(d.error || "Validation failed — run a GitHub sync first.");
+      } else if (d.requiresSync) {
+        setSkillValidation({ ...d, unverified: [], verified: [], suggested: { languages: [], frameworks: [], tools: [] } });
       }
     } catch {
-      alert("Could not reach validation API.");
+      /* silent background failure */
     } finally {
       setValidatingSkills(false);
     }
@@ -917,113 +931,127 @@ export function EditorClient({
       {/* Skill Validation Panel */}
       {skillValidation && (
         <div className="rounded-2xl border border-white/10 overflow-hidden">
-          <div className="bg-white/[0.03] px-5 py-3 flex items-center justify-between border-b border-white/5">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-white">Validation Results</p>
-              <p className="text-[9px] text-neutral-500 mt-0.5">
-                ✅ {skillValidation.verified.length} verified by repos &nbsp;·&nbsp; ❌ {skillValidation.unverified.length} not found in any project
-              </p>
+          {(skillValidation as any).requiresSync ? (
+            <div className="bg-amber-500/5 p-6 flex flex-col items-center text-center">
+               <AlertTriangle className="w-6 h-6 text-amber-500/40 mb-3" />
+               <p className="text-xs font-bold text-amber-200/80 mb-1">GitHub Intelligence Offline</p>
+               <p className="text-[10px] text-neutral-500 mb-4 max-w-[240px]">We need to index your repositories before we can verify your technical mastery.</p>
+               <Link href="/dashboard/syncing" className="px-5 py-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 rounded-xl text-[9px] font-black uppercase tracking-widest text-amber-400 transition-all">
+                  Initialize Sync Terminal
+               </Link>
             </div>
-            <button
-              onClick={handleRemoveUnverified}
-              disabled={skillValidation.unverified.length === 0}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-[9px] font-black uppercase tracking-widest transition-all disabled:opacity-30"
-            >
-              <Trash2 className="w-3 h-3" />
-              Remove {skillValidation.unverified.length} Unverified
-            </button>
-          </div>
-          <div className="p-4">
-            {/* Unverified skills */}
-            {skillValidation.unverified.length > 0 && (
-              <div className="mb-4">
-                <p className="text-[9px] font-bold uppercase tracking-widest text-red-400 mb-2">❌ Not Found in Your GitHub Repos</p>
-                <div className="flex flex-wrap gap-2">
-                  {skillValidation.unverified.map((s, i) => (
-                    <span key={i} className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-500/5 border border-red-500/20 text-[9px] font-bold text-red-300">
-                      {s}
-                      <button onClick={() => {
-                        const uLow = s.toLowerCase();
-                        setSkills({
-                          languages: (skills.languages || []).filter(x => x.toLowerCase() !== uLow),
-                          frameworks: (skills.frameworks || []).filter(x => x.toLowerCase() !== uLow),
-                          tools: (skills.tools || []).filter(x => x.toLowerCase() !== uLow),
-                        });
-                        setSkillValidation(prev => prev ? { ...prev, unverified: prev.unverified.filter(x => x !== s) } : null);
-                      }} className="text-red-500 hover:text-red-300 ml-0.5"><X className="w-2.5 h-2.5" /></button>
-                    </span>
-                  ))}
+          ) : (
+            <>
+              <div className="bg-white/[0.03] px-5 py-3 flex items-center justify-between border-b border-white/5">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-white">Validation Results</p>
+                  <p className="text-[9px] text-neutral-500 mt-0.5">
+                    ✅ {skillValidation.verified.length} verified by repos &nbsp;·&nbsp; ❌ {skillValidation.unverified.length} not found in any project
+                  </p>
                 </div>
+                <button
+                  onClick={handleRemoveUnverified}
+                  disabled={skillValidation.unverified.length === 0}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-[9px] font-black uppercase tracking-widest transition-all disabled:opacity-30"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  Remove {skillValidation.unverified.length} Unverified
+                </button>
               </div>
-            )}
-            {/* Verified skills */}
-            {skillValidation.verified.length > 0 && (
-              <div className="mb-4">
-                <p className="text-[9px] font-bold uppercase tracking-widest text-emerald-400 mb-2">✅ Verified by GitHub Activity</p>
-                <div className="flex flex-wrap gap-2">
-                  {skillValidation.verified.map((s, i) => (
-                    <span key={i} className="px-2.5 py-1 rounded-lg bg-emerald-500/5 border border-emerald-500/20 text-[9px] font-bold text-emerald-300">
-                      {s}
-                    </span>
-                  ))}
-                </div>
+              <div className="p-4">
+                {/* Unverified skills */}
+                {skillValidation.unverified.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-red-400 mb-2">❌ Not Found in Your GitHub Repos</p>
+                    <div className="flex flex-wrap gap-2">
+                      {skillValidation.unverified.map((s, i) => (
+                        <span key={i} className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-500/5 border border-red-500/20 text-[9px] font-bold text-red-300">
+                          {s}
+                          <button onClick={() => {
+                            const uLow = s.toLowerCase();
+                            setSkills({
+                              languages: (skills.languages || []).filter(x => x.toLowerCase() !== uLow),
+                              frameworks: (skills.frameworks || []).filter(x => x.toLowerCase() !== uLow),
+                              tools: (skills.tools || []).filter(x => x.toLowerCase() !== uLow),
+                            });
+                            setSkillValidation(prev => prev ? { ...prev, unverified: prev.unverified.filter(x => x !== s) } : null);
+                          }} className="text-red-500 hover:text-red-300 ml-0.5"><X className="w-2.5 h-2.5" /></button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {/* Verified skills */}
+                {skillValidation.verified.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-emerald-400 mb-2">✅ Verified by GitHub Activity</p>
+                    <div className="flex flex-wrap gap-2">
+                      {skillValidation.verified.map((s, i) => (
+                        <span key={i} className="px-2.5 py-1 rounded-lg bg-emerald-500/5 border border-emerald-500/20 text-[9px] font-bold text-emerald-300">
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {/* Suggested skills from repos not yet listed */}
+                {[...(skillValidation.suggested.languages || []), ...(skillValidation.suggested.frameworks || []), ...(skillValidation.suggested.tools || [])].length > 0 && (
+                  <div>
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-blue-400 mb-2">💡 Found in Repos but Not Listed</p>
+                    <div className="flex flex-wrap gap-2">
+                      {([...skillValidation.suggested.languages, ...skillValidation.suggested.frameworks, ...skillValidation.suggested.tools]).map((s, i) => (
+                        <button
+                          key={i}
+                          onClick={() => {
+                            const cat = skillValidation.suggested.languages.includes(s) ? "languages"
+                              : skillValidation.suggested.frameworks.includes(s) ? "frameworks" : "tools";
+                            setSkills(prev => ({ ...prev, [cat]: [...(prev[cat] || []), s] }));
+                            setSkillValidation(prev => prev ? {
+                              ...prev,
+                              suggested: {
+                                languages: prev.suggested.languages.filter(x => x !== s),
+                                frameworks: prev.suggested.frameworks.filter(x => x !== s),
+                                tools: prev.suggested.tools.filter(x => x !== s),
+                              }
+                            } : null);
+                          }}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-500/5 border border-blue-500/20 text-[9px] font-bold text-blue-300 hover:bg-blue-500/15 transition-all"
+                        >
+                          <Plus className="w-2.5 h-2.5" />{s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-            {/* Suggested skills from repos not yet listed */}
-            {[...(skillValidation.suggested.languages || []), ...(skillValidation.suggested.frameworks || []), ...(skillValidation.suggested.tools || [])].length > 0 && (
-              <div>
-                <p className="text-[9px] font-bold uppercase tracking-widest text-blue-400 mb-2">💡 Found in Repos but Not Listed</p>
-                <div className="flex flex-wrap gap-2">
-                  {([...skillValidation.suggested.languages, ...skillValidation.suggested.frameworks, ...skillValidation.suggested.tools]).map((s, i) => (
-                    <button
-                      key={i}
-                      onClick={() => {
-                        const cat = skillValidation.suggested.languages.includes(s) ? "languages"
-                          : skillValidation.suggested.frameworks.includes(s) ? "frameworks" : "tools";
-                        setSkills(prev => ({ ...prev, [cat]: [...(prev[cat] || []), s] }));
-                        setSkillValidation(prev => prev ? {
-                          ...prev,
-                          suggested: {
-                            languages: prev.suggested.languages.filter(x => x !== s),
-                            frameworks: prev.suggested.frameworks.filter(x => x !== s),
-                            tools: prev.suggested.tools.filter(x => x !== s),
-                          }
-                        } : null);
-                      }}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-500/5 border border-blue-500/20 text-[9px] font-bold text-blue-300 hover:bg-blue-500/15 transition-all"
-                    >
-                      <Plus className="w-2.5 h-2.5" />{s}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+            </>
+          )}
         </div>
       )}
 
       <div className="pt-4 flex items-center justify-between gap-3">
-        <button
-          onClick={handleValidateSkills}
-          disabled={validatingSkills}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/15 border border-amber-500/20 text-amber-400 text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-50"
-        >
-          {validatingSkills ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <AlertTriangle className="w-3.5 h-3.5" />}
-          {validatingSkills ? "Scanning Repos..." : "🔍 Validate Against Repos"}
-        </button>
-        <button
-          onClick={saveCV}
-          disabled={saveStatus === "saving"}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-            saveStatus === "saved" 
-              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" 
-              : "bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/20"
-          }`}
-        >
-          {saveStatus === "saving" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-          {saveStatus === "saving" ? "Syncing..." : saveStatus === "saved" ? "Skills Saved" : "Save Skill Matrix"}
-        </button>
+        {/* Auto-validation indicator — shows while scanning in background */}
+        {validatingSkills && (
+          <span className="flex items-center gap-1.5 text-[9px] font-bold text-neutral-500 uppercase tracking-widest">
+            <Loader2 className="w-3 h-3 animate-spin" /> Scanning repos...
+          </span>
+        )}
+        <div className="ml-auto">
+          <button
+            onClick={saveCV}
+            disabled={saveStatus === "saving"}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+              saveStatus === "saved" 
+                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" 
+                : "bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/20"
+            }`}
+          >
+            {saveStatus === "saving" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+            {saveStatus === "saving" ? "Syncing..." : saveStatus === "saved" ? "Skills Saved" : "Save Skill Matrix"}
+          </button>
+        </div>
       </div>
+
 
       <div className="pt-8 border-t border-white/5">
         <p className="text-[10px] font-bold uppercase tracking-[2px] text-neutral-500 mb-4 px-2">Smart Skill Updates</p>

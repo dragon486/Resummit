@@ -30,8 +30,9 @@ export async function POST(req: Request) {
 
     if (!githubData?.repositories) {
       return NextResponse.json({
-        error: "No GitHub data found. Please run a GitHub sync first.",
-      }, { status: 400 });
+        requiresSync: true,
+        message: "No GitHub data found. Please run a GitHub sync first.",
+      });
     }
 
     // Parse stored repos
@@ -45,7 +46,10 @@ export async function POST(req: Request) {
     }
 
     if (repos.length === 0) {
-      return NextResponse.json({ error: "No repos in GitHub data." }, { status: 400 });
+      return NextResponse.json({
+        requiresSync: true,
+        message: "No repos in GitHub data.",
+      });
     }
 
     // Run weighted skill extraction on real repos
