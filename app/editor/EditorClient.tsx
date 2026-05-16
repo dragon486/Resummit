@@ -499,9 +499,8 @@ export function EditorClient({
   };
 
   // ── Skill Validation (cross-ref against real repos) ──
-  const handleValidateSkills = async () => {
+  const handleValidateSkills = async (autoRetry = true) => {
     setValidatingSkills(true);
-    setSkillValidation(null);
     try {
       const res = await fetch("/api/cv/validate-skills", {
         method: "POST",
@@ -509,9 +508,19 @@ export function EditorClient({
         body: JSON.stringify({ currentSkills: skills }),
       });
       const d = await res.json();
+      
       if (res.ok && !d.requiresSync) {
         setSkillValidation(d);
       } else if (d.requiresSync) {
+        // If we have an access token, try to sync automatically instead of showing error
+        if (accessToken && autoRetry) {
+          console.log("[AUTO-SYNC] Triggering background GitHub sync...");
+          const syncRes = await fetch("/api/github/sync");
+          if (syncRes.ok) {
+             // Retry validation once sync is finished
+             return handleValidateSkills(false);
+          }
+        }
         setSkillValidation({ ...d, unverified: [], verified: [], suggested: { languages: [], frameworks: [], tools: [] } });
       }
     } catch {
@@ -934,12 +943,18 @@ export function EditorClient({
         <div className="rounded-2xl border border-white/10 overflow-hidden">
           {(skillValidation as any).requiresSync ? (
             <div className="bg-amber-500/5 p-6 flex flex-col items-center text-center">
-               <AlertTriangle className="w-6 h-6 text-amber-500/40 mb-3" />
-               <p className="text-xs font-bold text-amber-200/80 mb-1">GitHub Intelligence Offline</p>
-               <p className="text-[10px] text-neutral-500 mb-4 max-w-[240px]">We need to index your repositories before we can verify your technical mastery.</p>
-               <Link href="/dashboard/syncing" className="px-5 py-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 rounded-xl text-[9px] font-black uppercase tracking-widest text-amber-400 transition-all">
-                  Initialize Sync Terminal
-               </Link>
+               <AlertTriangle className={`w-6 h-6 text-amber-500/40 mb-3 ${validatingSkills ? "animate-spin text-blue-500" : ""}`} />
+               <p className="text-xs font-bold text-amber-200/80 mb-1">
+                 {validatingSkills ? "Syncing Profile..." : "GitHub Intelligence Offline"}
+               </p>
+               <p className="text-[10px] text-neutral-500 mb-4 max-w-[240px]">
+                 {validatingSkills ? "We are indexing your engineering DNA to verify your mastery." : "We need to index your repositories before we can verify your technical mastery."}
+               </p>
+               {!validatingSkills && (
+                 <Link href="/dashboard/syncing" className="px-5 py-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 rounded-xl text-[9px] font-black uppercase tracking-widest text-amber-400 transition-all">
+                    Initialize Sync Terminal
+                 </Link>
+               )}
             </div>
           ) : (
             <>
@@ -1033,8 +1048,8 @@ export function EditorClient({
       <div className="pt-4 flex items-center justify-between gap-3">
         {/* Auto-validation indicator — shows while scanning in background */}
         {validatingSkills && (
-          <span className="flex items-center gap-1.5 text-[9px] font-bold text-neutral-500 uppercase tracking-widest">
-            <Loader2 className="w-3 h-3 animate-spin" /> Scanning repos...
+          <span className="flex items-center gap-1.5 text-[9px] font-bold text-blue-400 uppercase tracking-[0.2em] animate-pulse">
+            <Loader2 className="w-3 h-3 animate-spin" /> {skillValidation ? "Syncing engineering profile..." : "Validating skills..."}
           </span>
         )}
         <div className="ml-auto">
