@@ -1,17 +1,10 @@
 import type { Metadata } from "next";
-import { Inter, Outfit } from "next/font/google"; // Added Outfit
 import { AuthProvider } from "@/components/providers/auth-provider";
 import "./globals.css";
 
-const inter = Inter({ 
-  subsets: ["latin"],
-  variable: '--font-inter',
-});
-
-const outfit = Outfit({ 
-  subsets: ["latin"],
-  variable: '--font-outfit',
-});
+// System font fallbacks to bypass Google Font network build blockers
+const inter = { variable: 'font-sans' };
+const outfit = { variable: 'font-display' };
 
 export const metadata: Metadata = {
   title: "Sclade AI | Auto-Updating AI CV Engine",
