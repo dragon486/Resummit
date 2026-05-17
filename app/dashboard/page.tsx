@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { LayoutDashboard, FileText, Settings, Rocket, ArrowRight, Bell, User, Cpu, Target, Zap, Shield, Sparkles, BarChart3, Activity } from "lucide-react";
 import Link from "next/link";
 import { SmartUpdateCenter } from "@/components/dashboard/SmartUpdateCenter";
+import { DashboardControls } from "@/components/dashboard/DashboardControls";
 import { Onboarding } from "@/components/onboarding/Onboarding";
 import { EngineeringSignals } from "@/lib/server/githubIntelligence";
 
@@ -81,20 +82,7 @@ export default async function DashboardPage() {
              <Link href="/editor" className="hover:text-white transition-colors">Editor</Link>
           </div>
         </div>
-        <div className="flex items-center gap-6">
-           <button className="text-neutral-500 hover:text-white transition-colors"><Bell className="w-5 h-5" /></button>
-           <button className="text-neutral-500 hover:text-white transition-colors"><Settings className="w-5 h-5" /></button>
-           <div className="h-8 w-[1px] bg-white/10 mx-2" />
-           <div className="flex items-center gap-3 pl-2">
-             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-neutral-800 to-neutral-900 border border-white/5 flex items-center justify-center overflow-hidden">
-               {dbUser.image ? (
-                 <img src={dbUser.image} alt={dbUser.name || ""} className="w-full h-full object-cover opacity-80" />
-               ) : (
-                 <User className="w-5 h-5 text-neutral-400" />
-               )}
-             </div>
-           </div>
-        </div>
+        <DashboardControls user={dbUser} />
       </nav>
 
       <main className="relative z-10 max-w-7xl mx-auto p-8 md:p-12">
