@@ -870,24 +870,50 @@ export function EditorClient({
     }
   };
 
-  // ── Save status UI ──
+  // ── Save status UI / Global Save Button ──
   const SaveIndicator = () => {
-    if (saveStatus === "idle") return null;
+    const hasUnsavedChanges = !!saveTimer.current;
+    
+    let btnText = "Saved ✓";
+    let btnStyle = "text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 cursor-default";
+    let Icon = CheckCircle2;
+    
+    if (saveStatus === "saving") {
+      btnText = "Saving...";
+      btnStyle = "text-blue-400 bg-blue-500/10 border border-blue-500/20 cursor-not-allowed";
+      Icon = Loader2;
+    } else if (saveStatus === "error") {
+      btnText = "Sync Error";
+      btnStyle = "text-red-400 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 cursor-pointer animate-pulse";
+      Icon = AlertTriangle;
+    } else if (hasUnsavedChanges) {
+      btnText = "Save changes";
+      btnStyle = "text-amber-400 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 cursor-pointer shadow-[0_0_15px_rgba(245,158,11,0.15)]";
+      Icon = Save;
+    } else if (saveStatus === "idle") {
+      btnText = "Save Resume";
+      btnStyle = "text-neutral-400 bg-neutral-500/10 border border-neutral-500/20 hover:bg-neutral-500/20 cursor-pointer";
+      Icon = Save;
+    }
+    
+    const handleManualSave = () => {
+      if (saveStatus === "saving") return;
+      if (saveTimer.current) {
+        clearTimeout(saveTimer.current);
+        saveTimer.current = null;
+      }
+      saveCV();
+    };
+
     return (
-      <span
-        className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.1em] px-3 py-1.5 rounded-full transition-all ${
-          saveStatus === "saving"
-            ? "text-blue-400 bg-blue-500/10 border border-blue-500/20"
-            : saveStatus === "saved"
-            ? "text-emerald-400 bg-emerald-500/10 border border-emerald-500/20"
-            : "text-red-400 bg-red-500/10 border border-red-500/20"
-        }`}
+      <button
+        onClick={handleManualSave}
+        disabled={saveStatus === "saving"}
+        className={`flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.1em] px-3 py-1.5 rounded-xl transition-all active:scale-95 ${btnStyle}`}
       >
-        {saveStatus === "saving" && <Loader2 className="w-3 h-3 animate-spin" />}
-        {saveStatus === "saved" && <CheckCircle2 className="w-3 h-3" />}
-        {saveStatus === "error" && <AlertTriangle className="w-3 h-3" />}
-        {saveStatus === "saving" ? "Syncing Engine" : saveStatus === "saved" ? "Database Ready" : "Sync Failure"}
-      </span>
+        {Icon === Loader2 ? <Icon className="w-3 h-3 animate-spin" /> : <Icon className="w-3 h-3" />}
+        {btnText}
+      </button>
     );
   };
 
@@ -1191,22 +1217,6 @@ export function EditorClient({
 
       {/* Skill validation runs silently in background */}
 
-      {/* Save Button */}
-      <div className="pt-2 flex items-center justify-end">
-        <button
-          onClick={saveCV}
-          disabled={saveStatus === "saving"}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-            saveStatus === "saved"
-              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-              : "bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/20"
-          }`}
-        >
-          {saveStatus === "saving" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-          {saveStatus === "saving" ? "Saving..." : saveStatus === "saved" ? "Saved ✓" : "Save Skills"}
-        </button>
-      </div>
-
       {/* Smart Updates — GitHub AI suggestions below */}
       <div className="pt-6 border-t border-white/[0.04]">
         <p className="text-[10px] font-bold uppercase tracking-[2px] text-neutral-600 mb-4 px-1">Smart Skill Updates</p>
@@ -1481,21 +1491,6 @@ export function EditorClient({
                       </div>
                     ))}
                   </div>
-                </div>
-
-                <div className="pt-4 flex justify-end">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); saveCV(); }}
-                    disabled={saveStatus === "saving"}
-                    className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                      saveStatus === "saved" 
-                        ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" 
-                        : "bg-white text-black hover:bg-neutral-200"
-                    }`}
-                  >
-                    {saveStatus === "saving" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-                    {saveStatus === "saving" ? "Saving..." : saveStatus === "saved" ? "Project Saved" : "Save Project"}
-                  </button>
                 </div>
               </div>
             )}
