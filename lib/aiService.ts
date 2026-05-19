@@ -248,23 +248,53 @@ export const generateBatchBullets = generateCVFromRepos;
 
 export async function regenerateSummary(
   projects: any[],
-  targetRole: string
+  skills: any,
+  experience: any[],
+  targetRole: string,
+  profileReadme?: string
 ): Promise<string> {
-  const prompt = `Write a highly punchy, 2-sentence professional resume summary for a ${targetRole} role, focusing on engineering depth.
+  const projectsCtx = projects && projects.length > 0 
+    ? projects.map(p => `- ${p.title || p.name}: ${p.description || ""} (Tech: ${Array.isArray(p.tech) ? p.tech.join(', ') : p.tech || ""})`).join('\n')
+    : "No projects specified.";
 
-Based on these projects: ${projects.map(p => p.title || p.name).join(', ')}
+  const skillsCtx = skills 
+    ? `Languages: ${(skills.languages || []).join(', ')}\nFrameworks: ${(skills.frameworks || []).join(', ')}\nTools & Cloud: ${(skills.tools || []).join(', ')}`
+    : "No skills specified.";
+
+  const expCtx = experience && experience.length > 0
+    ? experience.map(e => `- ${e.title} at ${e.company} (${e.period}): ${(e.bullets || []).join('; ')}`).join('\n')
+    : "No experience specified.";
+
+  const readmeCtx = profileReadme && profileReadme.trim()
+    ? `GitHub Profile Bio/README Info:\n${profileReadme.slice(0, 1000)}`
+    : "";
+
+  const prompt = `Write a highly punchy, 2-sentence professional resume summary for a ${targetRole} role, focusing on software engineering depth.
+
+Crucial Rule: Do NOT mention or invent any programming languages, frameworks, or tools that are NOT listed in the Skills Grid or Projects/Experience sections below. This creates a credibility disconnect. Stick strictly to what is verified.
+
+Profile Info:
+${readmeCtx}
+
+Active Skills Grid:
+${skillsCtx}
+
+Active Experience History:
+${expCtx}
+
+Active Projects Portfolio:
+${projectsCtx}
 
 Rules:
-- Sentence 1: A highly punchy technical description of the systems and domain they specialize in and build products for (tailored specifically to a ${targetRole} role).
-- Sentence 2: Direct, non-generic list of primary technologies they deploy (e.g. 'Builds distributed web architectures using Next.js, FastAPI, and PostgreSQL').
+- Sentence 1: A highly punchy technical description of the systems, engineering domains, or product architectures they specialize in and build (tailored to a ${targetRole} role).
+- Sentence 2: Direct, non-generic list of primary technologies they deploy, chosen STRICTLY from the verified active skills/projects (e.g. 'Builds distributed web architectures using Next.js, FastAPI, and PostgreSQL').
 - No adjectives (passionate, motivated, expert, seasoned) or generic filler sentences.
 - No buzzwords.
 - RETURN ONLY THE RAW SUMMARY TEXT! DO NOT WRAP IN JSON! NO BRACKETS! NO KEYS! ONLY TEXT!
-`
+`;
 
   const raw = await callAI(prompt)
   
-  // SANITIZE: Try to extract summary if AI returned JSON despite instructions
   let cleaned = raw.replace(/^"|"$/g, '').trim();
   if (cleaned.startsWith('{')) {
     try {

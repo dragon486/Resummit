@@ -75,3 +75,21 @@ export function normalizeAndDedupeSkills(skills: any) {
     tools: Array.from(tools),
   };
 }
+
+export function formatLinkedIn(urlOrHandle: string): string {
+  if (!urlOrHandle) return "";
+  let clean = urlOrHandle
+    .trim()
+    .replace(/^(https?:\/\/)?(www\.)?linkedin\.com\/in\//i, "")
+    .replace(/\/+$/, "");
+  return `linkedin.com/in/${clean}`;
+}
+
+export function formatGitHub(urlOrHandle: string): string {
+  if (!urlOrHandle) return "";
+  let clean = urlOrHandle
+    .trim()
+    .replace(/^(https?:\/\/)?(www\.)?github\.com\//i, "")
+    .replace(/\/+$/, "");
+  return `github.com/${clean}`;
+}

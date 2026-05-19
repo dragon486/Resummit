@@ -1,7 +1,7 @@
 "use client";
 
 import { CVData, CVExperience, CVEducation, CVSkills, ProjectData } from "@/lib/types";
-import { normalizeAndDedupeSkills } from "@/lib/skills-data";
+import { normalizeAndDedupeSkills, formatLinkedIn, formatGitHub } from "@/lib/skills-data";
 
 interface ResumePreviewProps {
   data: CVData;
@@ -117,18 +117,12 @@ function FormalTemplate({
           {data.phone && <span>• {data.phone}</span>}
           {data.github && (
             <span>
-              • github.com/
-              {data.github
-                .replace(/https?:\/\/(www\.)?github\.com\//, "")
-                .replace(/\/$/, "")}
+              • {formatGitHub(data.github)}
             </span>
           )}
           {data.linkedin && (
             <span>
-              • linkedin.com/in/
-              {data.linkedin
-                .replace(/https?:\/\/(www\.)?linkedin\.com\/in\//, "")
-                .replace(/\/$/, "")}
+              • {formatLinkedIn(data.linkedin)}
             </span>
           )}
         </div>

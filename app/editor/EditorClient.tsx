@@ -727,7 +727,12 @@ export function EditorClient({
       const res = await fetch("/api/cv/regenerate-summary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projects, targetRole: personalInfo.targetRole }),
+        body: JSON.stringify({
+          projects,
+          skills,
+          experience,
+          targetRole: personalInfo.targetRole,
+        }),
       });
       const d = await res.json();
       if (d.summary) setSummary(d.summary);

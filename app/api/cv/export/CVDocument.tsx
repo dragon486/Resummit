@@ -1,7 +1,7 @@
 import React from "react";
 import { Page, Text, View, Document, StyleSheet } from "@react-pdf/renderer";
 import type { CVData, ProjectData } from "@/lib/types";
-import { normalizeAndDedupeSkills } from "@/lib/skills-data";
+import { normalizeAndDedupeSkills, formatLinkedIn, formatGitHub } from "@/lib/skills-data";
 
 // Standard Times-Roman styles matching the FormalTemplate in ResumePreview.tsx perfectly
 const styles = StyleSheet.create({
@@ -187,14 +187,10 @@ export const CVDocument = ({ cv, projects }: { cv: CVData; projects: ProjectData
   if (cv.email) contactParts.push(cv.email);
   if (cv.phone) contactParts.push(cv.phone);
   if (cv.github) {
-    contactParts.push(
-      `github.com/${cv.github.replace(/https?:\/\/(www\.)?github\.com\//, "").replace(/\/$/, "")}`
-    );
+    contactParts.push(formatGitHub(cv.github));
   }
   if (cv.linkedin) {
-    contactParts.push(
-      `linkedin.com/in/${cv.linkedin.replace(/https?:\/\/(www\.)?linkedin\.com\/in\//, "").replace(/\/$/, "")}`
-    );
+    contactParts.push(formatLinkedIn(cv.linkedin));
   }
 
   // Parse summary display
