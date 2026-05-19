@@ -163,26 +163,24 @@ function ExperienceDatePicker({
   };
 
   return (
-    <div className="space-y-3 bg-neutral-950/20 border border-white/5 rounded-2xl p-4">
-      <div className="grid grid-cols-2 gap-2.5">
-        <div>
-          <label className="text-[9px] font-black uppercase tracking-widest text-neutral-600 block mb-1">Start Month</label>
+    <div className="space-y-2 bg-neutral-950/40 border border-white/5 rounded-xl p-2.5">
+      {/* Start Date Row */}
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500 w-10 shrink-0">Start</span>
+        <div className="grid grid-cols-2 gap-1.5 flex-1 min-w-0">
           <select
             value={startMonth}
             onChange={(e) => update({ startMonth: e.target.value })}
-            className="w-full bg-neutral-900/60 border border-white/5 rounded-xl px-3 py-2 text-[12px] text-neutral-200 outline-none focus:border-blue-500/40 transition-all font-semibold cursor-pointer"
+            className="w-full bg-neutral-900/40 border border-white/5 rounded-lg px-2 py-1.5 text-[11px] text-neutral-200 outline-none focus:border-blue-500/40 transition-all font-semibold cursor-pointer text-center"
           >
             {MONTHS.map((m) => (
               <option key={m} value={m} className="bg-neutral-950 text-neutral-200">{m}</option>
             ))}
           </select>
-        </div>
-        <div>
-          <label className="text-[9px] font-black uppercase tracking-widest text-neutral-600 block mb-1">Start Year</label>
           <select
             value={startYear}
             onChange={(e) => update({ startYear: e.target.value })}
-            className="w-full bg-neutral-900/60 border border-white/5 rounded-xl px-3 py-2 text-[12px] text-neutral-200 outline-none focus:border-blue-500/40 transition-all font-semibold cursor-pointer"
+            className="w-full bg-neutral-900/40 border border-white/5 rounded-lg px-2 py-1.5 text-[11px] text-neutral-200 outline-none focus:border-blue-500/40 transition-all font-semibold cursor-pointer text-center"
           >
             {YEARS.map((y) => (
               <option key={y} value={y} className="bg-neutral-950 text-neutral-200">{y}</option>
@@ -191,7 +189,8 @@ function ExperienceDatePicker({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 py-0.5">
+      {/* Currently Work Here Checkbox */}
+      <div className="flex items-center gap-2 pl-12 py-0.5">
         <input
           type="checkbox"
           id={`present-checkbox-${value}`}
@@ -201,32 +200,30 @@ function ExperienceDatePicker({
         />
         <label
           htmlFor={`present-checkbox-${value}`}
-          className="text-[11px] font-bold text-neutral-400 select-none cursor-pointer hover:text-neutral-200 transition-colors"
+          className="text-[10px] font-bold text-neutral-500 select-none cursor-pointer hover:text-neutral-300 transition-colors"
         >
           Currently work here (Present)
         </label>
       </div>
 
+      {/* End Date Row */}
       {!isPresent && (
-        <div className="grid grid-cols-2 gap-2.5">
-          <div>
-            <label className="text-[9px] font-black uppercase tracking-widest text-neutral-600 block mb-1">End Month</label>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500 w-10 shrink-0">End</span>
+          <div className="grid grid-cols-2 gap-1.5 flex-1 min-w-0">
             <select
               value={endMonth === "Present" ? "Dec" : endMonth}
               onChange={(e) => update({ endMonth: e.target.value })}
-              className="w-full bg-neutral-900/60 border border-white/5 rounded-xl px-3 py-2 text-[12px] text-neutral-200 outline-none focus:border-blue-500/40 transition-all font-semibold cursor-pointer"
+              className="w-full bg-neutral-900/40 border border-white/5 rounded-lg px-2 py-1.5 text-[11px] text-neutral-200 outline-none focus:border-blue-500/40 transition-all font-semibold cursor-pointer text-center"
             >
               {MONTHS.map((m) => (
                 <option key={m} value={m} className="bg-neutral-950 text-neutral-200">{m}</option>
               ))}
             </select>
-          </div>
-          <div>
-            <label className="text-[9px] font-black uppercase tracking-widest text-neutral-600 block mb-1">End Year</label>
             <select
               value={endYear}
               onChange={(e) => update({ endYear: e.target.value })}
-              className="w-full bg-neutral-900/60 border border-white/5 rounded-xl px-3 py-2 text-[12px] text-neutral-200 outline-none focus:border-blue-500/40 transition-all font-semibold cursor-pointer"
+              className="w-full bg-neutral-900/40 border border-white/5 rounded-lg px-2 py-1.5 text-[11px] text-neutral-200 outline-none focus:border-blue-500/40 transition-all font-semibold cursor-pointer text-center"
             >
               {YEARS.map((y) => (
                 <option key={y} value={y} className="bg-neutral-950 text-neutral-200">{y}</option>
