@@ -269,9 +269,9 @@ export async function regenerateSummary(
     ? `GitHub Profile Bio/README Info:\n${profileReadme.slice(0, 1000)}`
     : "";
 
-  const prompt = `Write a highly punchy, 2-sentence professional resume summary for a ${targetRole} role, focusing on software engineering depth.
+  const prompt = `Write a highly punchy, 2-sentence professional resume summary for a ${targetRole} candidate. This must be a summary of the PERSON's overall software engineering career and history, NOT a summary of a single project.
 
-Crucial Rule: Do NOT mention or invent any programming languages, frameworks, or tools that are NOT listed in the Skills Grid or Projects/Experience sections below. This creates a credibility disconnect. Stick strictly to what is verified.
+Crucial Rule: Do NOT mention or invent any programming languages, frameworks, or tools that are NOT listed in the Skills Grid or Projects/Experience sections below. Stick strictly to what is verified.
 
 Profile Info:
 ${readmeCtx}
@@ -286,8 +286,8 @@ Active Projects Portfolio:
 ${projectsCtx}
 
 Rules:
-- Sentence 1: A highly punchy technical description of the systems, engineering domains, or product architectures they specialize in and build (tailored to a ${targetRole} role).
-- Sentence 2: Direct, non-generic list of primary technologies they deploy, chosen STRICTLY from the verified active skills/projects (e.g. 'Builds distributed web architectures using Next.js, FastAPI, and PostgreSQL').
+- Sentence 1: A highly punchy professional summary of the candidate's career as a ${targetRole}. Focus broadly on their experience building scalable systems, web/AI architectures, and core software engineering domains, keeping it broad enough to represent their full history rather than focusing on a single dominant project.
+- Sentence 2: A direct list of primary technologies they specialize in, chosen STRICTLY from the verified active skills grid above (e.g. 'Builds distributed web architectures using Next.js, FastAPI, and PostgreSQL').
 - No adjectives (passionate, motivated, expert, seasoned) or generic filler sentences.
 - No buzzwords.
 - RETURN ONLY THE RAW SUMMARY TEXT! DO NOT WRAP IN JSON! NO BRACKETS! NO KEYS! ONLY TEXT!

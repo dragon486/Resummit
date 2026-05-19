@@ -194,8 +194,14 @@ export const CVDocument = ({ cv, projects }: { cv: CVData; projects: ProjectData
   }
 
   // Parse summary display
-  let displaySummary = cv.summary || "";
-  if (displaySummary.trim().startsWith("{")) {
+  let displaySummary = "";
+  if (typeof cv.summary === "string") {
+    displaySummary = cv.summary;
+  } else if (cv.summary && typeof cv.summary === "object") {
+    displaySummary = (cv.summary as any).summary || (cv.summary as any).Summary || JSON.stringify(cv.summary);
+  }
+
+  if (displaySummary && typeof displaySummary === "string" && displaySummary.trim().startsWith("{")) {
     try {
       const parsed = JSON.parse(displaySummary);
       displaySummary = parsed.summary || parsed.Summary || (Object.values(parsed)[0] as string);

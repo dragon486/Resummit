@@ -34,8 +34,14 @@ function FormalTemplate({
   const displaySkills = normalizeAndDedupeSkills(data.skills);
 
   // Parse summary if it was accidentally stored as JSON
-  let displaySummary = data.summary || "";
-  if (displaySummary.trim().startsWith("{")) {
+  let displaySummary = "";
+  if (typeof data.summary === "string") {
+    displaySummary = data.summary;
+  } else if (data.summary && typeof data.summary === "object") {
+    displaySummary = (data.summary as any).summary || (data.summary as any).Summary || JSON.stringify(data.summary);
+  }
+
+  if (displaySummary && typeof displaySummary === "string" && displaySummary.trim().startsWith("{")) {
     try {
       const parsed = JSON.parse(displaySummary);
       displaySummary =
