@@ -7,7 +7,7 @@ const inter = { variable: 'font-sans' };
 const outfit = { variable: 'font-display' };
 
 export const metadata: Metadata = {
-  title: "Sclade AI | Auto-Updating AI CV Engine",
+  title: "Resummit — GitHub Resume Intelligence",
   description: "Transform your GitHub projects into professional, ATS-optimized resume bullets in seconds.",
 };
 
@@ -17,8 +17,26 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${outfit.variable} h-full antialiased dark`} suppressHydrationWarning>
-      <body className="font-sans min-h-full bg-neutral-950 text-white flex flex-col">
+    <html lang="en" className={`${inter.variable} ${outfit.variable} h-full antialiased`} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const savedTheme = localStorage.getItem('sclade-theme');
+                if (savedTheme === 'light') {
+                  document.documentElement.classList.add('light');
+                  document.documentElement.classList.remove('dark');
+                } else {
+                  document.documentElement.classList.add('dark');
+                  document.documentElement.classList.remove('light');
+                }
+              } catch (_) {}
+            `,
+          }}
+        />
+      </head>
+      <body className="font-sans min-h-full bg-[var(--sclade-bg)] text-[var(--sclade-text-primary)] flex flex-col transition-colors duration-200">
         <AuthProvider>
           {children}
         </AuthProvider>

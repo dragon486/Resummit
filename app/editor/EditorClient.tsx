@@ -249,6 +249,7 @@ export function EditorClient({
 
   const [isSyncing, setIsSyncing] = useState(false);
   const [generatingExpBullets, setGeneratingExpBullets] = useState<number | null>(null);
+  const [generatingProjectFromReadme, setGeneratingProjectFromReadme] = useState<number | null>(null);
   const [expContext, setExpContext] = useState<Record<number, string>>({});
   const [cvWarnings, setCvWarnings] = useState<string[]>([]); // CV quality warnings from save API
   const [skillValidation, setSkillValidation] = useState<{
@@ -358,19 +359,14 @@ export function EditorClient({
       .catch((e) => setAtsError(e.message));
   }, []);
 
-  // ── Auto-validate skills whenever Skills tab is opened ──
+  // Save immediately when switching tabs if there is a pending save
   useEffect(() => {
-    if (activeTab !== "skills") return;
-    const totalSkills =
-      (skills.languages?.length || 0) +
-      (skills.frameworks?.length || 0) +
-      (skills.tools?.length || 0);
-    if (totalSkills === 0) return; // nothing to validate
-    // Small delay so the tab transition completes first
-    const t = setTimeout(() => handleValidateSkills(), 500);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]);
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+      saveCV();
+    }
+  }, [activeTab, saveCV]);
 
   // ── State update helpers ──
   const updatePersonalInfo = (field: string, val: any) =>
@@ -498,6 +494,36 @@ export function EditorClient({
     }
   };
 
+  const handleGenerateProjectFromReadme = async (idx: number) => {
+    const p = projects[idx];
+    if (!p.title) return;
+    setGeneratingProjectFromReadme(idx);
+    try {
+      const res = await fetch("/api/github/project-readme", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          repoName: p.title,
+          techStack: p.techStack || [],
+        }),
+      });
+      const d = await res.json();
+      if (d.success) {
+        const nu = [...projects];
+        nu[idx] = {
+          ...nu[idx],
+          description: d.description,
+          highlights: d.highlights || [],
+        };
+        setProjects(nu);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setGeneratingProjectFromReadme(null);
+    }
+  };
+
   // ── Skill Validation (cross-ref against real repos) ──
   const handleValidateSkills = async () => {
     setValidatingSkills(true);
@@ -512,32 +538,6 @@ export function EditorClient({
       
       if (res.ok) {
         setSkillValidation(d);
-        
-        // AUTO-INTEGRITY: If we have junk to purge or new skills to merge, do it automatically.
-        const currentCount = Object.values(skills).flat().length;
-        const newCount = Object.values(d.cleanedSkills).flat().length;
-        const hasChanges = d.unverified?.length > 0 || currentCount !== newCount;
-
-        if (hasChanges) {
-           console.log("[INTEGRITY] Automatically syncing database with verified engineering profile...");
-           const newSkills = {
-             languages: d.cleanedSkills.languages || [],
-             frameworks: d.cleanedSkills.frameworks || [],
-             tools: d.cleanedSkills.tools || [],
-           };
-           setSkills(newSkills);
-           
-           // Background save to lock in the clean state
-           fetch("/api/cv/save", {
-             method: "POST",
-             headers: { "Content-Type": "application/json" },
-             body: JSON.stringify({ 
-               resumeId, 
-               versionId, 
-               updates: { skills: JSON.stringify(newSkills) } 
-             }),
-           }).then(r => { if(r.ok) setSaveStatus("saved"); });
-        }
       }
     } catch {
       /* silent background failure */
@@ -749,7 +749,7 @@ export function EditorClient({
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-1">
-          <SectionLabel>Public Identity</SectionLabel>
+          <SectionLabel>Full Name</SectionLabel>
           <InlineEdit value={cv.name} onChange={(v) => updatePersonalInfo("name", v)} placeholder="Full Name" />
         </div>
         <div className="col-span-1">
@@ -762,24 +762,24 @@ export function EditorClient({
         </div>
         <div className="col-span-2 grid grid-cols-2 gap-4">
           <div>
-            <SectionLabel>Email Endpoint</SectionLabel>
+            <SectionLabel>Email Address</SectionLabel>
             <InlineEdit value={cv.email} onChange={(v) => updatePersonalInfo("email", v)} placeholder="professional@email.com" />
           </div>
           <div>
-            <SectionLabel>Direct Contact</SectionLabel>
+            <SectionLabel>Phone Number</SectionLabel>
             <InlineEdit value={cv.phone} onChange={(v) => updatePersonalInfo("phone", v)} placeholder="+1 (555) 000 000" />
           </div>
         </div>
         <div className="col-span-2">
-          <SectionLabel>Global Location</SectionLabel>
+          <SectionLabel>Location</SectionLabel>
           <InlineEdit value={cv.location} onChange={(v) => updatePersonalInfo("location", v)} placeholder="San Francisco, CA" />
         </div>
         <div className="col-span-1">
-          <SectionLabel>GitHub Source</SectionLabel>
+          <SectionLabel>GitHub Link</SectionLabel>
           <InlineEdit value={cv.github} onChange={(v) => updatePersonalInfo("github", v)} placeholder="github.com/handle" />
         </div>
         <div className="col-span-1">
-          <SectionLabel>LinkedIn Node</SectionLabel>
+          <SectionLabel>LinkedIn Link</SectionLabel>
           <InlineEdit
             value={cv.linkedin}
             onChange={(v) => updatePersonalInfo("linkedin", v)}
@@ -1091,22 +1091,22 @@ export function EditorClient({
           <div className="p-6 space-y-5">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <SectionLabel>Organization</SectionLabel>
+                <SectionLabel>Company / Organization</SectionLabel>
                 <InlineEdit value={exp.company} onChange={(v) => updateExp(i, "company", v)} placeholder="Company Name" />
               </div>
               <div>
-                <SectionLabel>Temporal Period</SectionLabel>
+                <SectionLabel>Dates / Period</SectionLabel>
                 <InlineEdit value={exp.period} onChange={(v) => updateExp(i, "period", v)} placeholder="e.g. June 2021 – Present" />
               </div>
               <div className="col-span-2">
-                <SectionLabel>Executive Title</SectionLabel>
+                <SectionLabel>Job Title</SectionLabel>
                 <InlineEdit value={exp.title} onChange={(v) => updateExp(i, "title", v)} placeholder="Software Engineer / Technical Lead" />
               </div>
             </div>
 
             <div className="pt-2">
               <div className="flex items-center justify-between mb-4">
-                <SectionLabel>High-Impact Outcomes</SectionLabel>
+                <SectionLabel>Achievements & Responsibilities</SectionLabel>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => addExpBullet(i)}
@@ -1267,8 +1267,22 @@ export function EditorClient({
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <SectionLabel>Engineering Highlights</SectionLabel>
-                    <button onClick={() => { const nu = [...(p.highlights || []), ""]; updateProject(pIdx, "highlights", nu); }} className="text-[10px] font-bold text-blue-400">+ Add Bullet</button>
+                    <SectionLabel>Project Highlights</SectionLabel>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => { const nu = [...(p.highlights || []), ""]; updateProject(pIdx, "highlights", nu); }} className="text-[10px] font-bold text-neutral-500 hover:text-white transition-colors mr-1">+ Add Bullet</button>
+                      <button
+                        onClick={() => handleGenerateProjectFromReadme(pIdx)}
+                        disabled={generatingProjectFromReadme === pIdx}
+                        className="text-[9px] font-black uppercase tracking-widest text-blue-400 hover:text-blue-300 flex items-center gap-1.5 bg-blue-500/10 hover:bg-blue-500/15 px-2.5 py-1 rounded-lg transition-all border border-blue-500/10 disabled:opacity-50"
+                      >
+                        {generatingProjectFromReadme === pIdx ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <Sparkles className="w-3 h-3" />
+                        )}
+                        {generatingProjectFromReadme === pIdx ? "Syncing..." : "✦ Sync README"}
+                      </button>
+                    </div>
                   </div>
                   <div className="space-y-3">
                     {(p.highlights || []).map((h, bIdx) => (
@@ -1412,7 +1426,7 @@ export function EditorClient({
              </div>
             <div className="flex flex-col">
                <span className="font-black text-lg tracking-tighter font-outfit uppercase leading-none">
-                 SCLADE<span className="text-blue-500">AI</span>
+                 RESUMMIT<span className="text-blue-500">AI</span>
                </span>
                <span className="text-[8px] font-black uppercase tracking-[3px] text-neutral-600 mt-1">Core Engine V2</span>
             </div>

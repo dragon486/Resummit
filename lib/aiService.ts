@@ -1,21 +1,42 @@
 // lib/aiService.ts
 import 'server-only'
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY
+import fs from 'fs'
+import path from 'path'
+
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434'
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'llama3.2'
 const GEMINI_MODEL = 'gemini-2.0-flash' // gemini-1.5-flash deprecated from v1beta API
 
 type AIMode = 'gemini' | 'ollama'
 
+function getGeminiKey(): string | undefined {
+  if (process.env.GEMINI_API_KEY) return process.env.GEMINI_API_KEY;
+  try {
+    const envPath = path.join(process.cwd(), '.env');
+    if (fs.existsSync(envPath)) {
+      const envContent = fs.readFileSync(envPath, 'utf-8');
+      const match = envContent.match(/^GEMINI_API_KEY=["']?([^"'\r\n]+)["']?/m);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+  } catch (err) {
+    console.error('[AI] Dynamic .env read error:', err);
+  }
+  return undefined;
+}
+
 function getAIMode(): AIMode {
-  if (GEMINI_API_KEY && GEMINI_API_KEY.length > 10) return 'gemini'
+  const key = getGeminiKey()
+  if (key && key.length > 10) return 'gemini'
   return 'ollama'
 }
 
 async function callGemini(prompt: string): Promise<string> {
   const { GoogleGenerativeAI } = await import('@google/generative-ai')
-  const genAI = new GoogleGenerativeAI(GEMINI_API_KEY!)
+  const key = getGeminiKey()
+  const genAI = new GoogleGenerativeAI(key!)
   const model = genAI.getGenerativeModel({
     model: GEMINI_MODEL,
     generationConfig: { responseMimeType: 'application/json' }
@@ -155,12 +176,57 @@ STRICT CONSTRAINTS:
 Repositories:
 ${JSON.stringify(repoSummary, null, 2)}`
 
-  const raw = await callAI(prompt)
-  const parsed = safeParseJSON(raw)
+  let parsed: any;
+  try {
+    const raw = await callAI(prompt)
+    parsed = safeParseJSON(raw)
+  } catch (err) {
+    console.warn("[AI] callAI failed inside generateCVFromRepos. Falling back to deterministic resume parsing.", err);
+    
+    // Deterministic parsing of repo names, languages, and descriptions
+    const projectsList = repos.slice(0, 3).map((r, idx) => {
+      const language = r.language || "TypeScript";
+      const techStack = Array.isArray(r.topics) && r.topics.length > 0 
+        ? r.topics.slice(0, 3) 
+        : [language, "Node.js", "Git"];
+      
+      const highlights = [
+        `Developed ${r.name} using ${language} to streamline repository functionality and architecture.`,
+        r.description 
+          ? `Implemented clean code patterns and integrated ${techStack.join(', ')} to enhance user experience.`
+          : `Engineered project components and modular architecture to optimize performance and deployment.`
+      ];
+
+      return {
+        title: r.name || `Engineering Project ${idx + 1}`,
+        techStack,
+        description: r.description || `High-performance modular project developed using ${language}.`,
+        highlights,
+        aiGenerated: false
+      };
+    });
+
+    const allLanguages = Array.from(new Set(repos.map(r => r.language).filter(Boolean))) as string[];
+    const allTopics = Array.from(new Set(repos.flatMap(r => r.topics || []).filter(Boolean))) as string[];
+
+    parsed = {
+      summary: `High-signal Software Engineer specializing in modern software development and engineering solutions. Demonstrated expertise in building modular tools and systems using ${allLanguages.slice(0, 3).join(', ')}.`,
+      skills: {
+        languages: allLanguages.length > 0 ? allLanguages.slice(0, 4) : ["TypeScript", "JavaScript", "Python"],
+        frameworks: allTopics.filter(t => ["react", "nextjs", "nestjs", "express", "django", "vue"].includes(t.toLowerCase())).slice(0, 4),
+        tools: ["Git", "Docker", "REST APIs", "GitHub Actions"]
+      },
+      projects: projectsList
+    };
+  }
 
   // Validate and fill defaults if model misses fields
   return {
-    summary: parsed.summary || 'Software engineer building web applications and tools. Experienced in JavaScript and Python.',
+    summary: Array.isArray(parsed.summary) 
+      ? parsed.summary.join(' ') 
+      : (typeof parsed.summary === 'string' 
+          ? parsed.summary 
+          : 'Software engineer building web applications and tools. Experienced in JavaScript and Python.'),
     skills: {
       languages: parsed.skills?.languages || [],
       frameworks: parsed.skills?.frameworks || [],

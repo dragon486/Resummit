@@ -15,7 +15,7 @@ export default function LoginPage() {
         </div>
 
         <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
-          Sclade <span className="text-blue-400">AI</span>
+          Resummit <span className="text-blue-400">AI</span>
         </h1>
         <p className="text-neutral-400 text-lg mb-12">
           Transform your GitHub projects into professional, ATS-optimized resume bullets in seconds.

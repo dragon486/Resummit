@@ -164,14 +164,14 @@ export function SmartUpdateCenter({
 
   if (suggestions.length === 0 && !scanning) {
     return (
-      <div className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center">
-        <RefreshCw className="w-8 h-8 text-neutral-500 mx-auto mb-3" />
-        <p className="text-xs text-neutral-400 mb-4">
+      <div className="bg-[var(--sclade-card-bg)] border border-[var(--sclade-card-border)] rounded-2xl p-6 text-center">
+        <RefreshCw className="w-8 h-8 text-[var(--sclade-text-secondary)] mx-auto mb-3" />
+        <p className="text-xs text-[var(--sclade-text-secondary)] mb-4">
           {scanError || "Your resume is up to date with your GitHub activity."}
         </p>
         <button
           onClick={handleScan}
-          className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all"
+          className="px-4 py-2 bg-[var(--sclade-btn-secondary-bg)] border border-[var(--sclade-card-border)] hover:bg-[var(--sclade-card-bg)] rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all text-[var(--sclade-text-primary)]"
         >
           Check for updates
         </button>
@@ -192,7 +192,7 @@ export function SmartUpdateCenter({
         <div className="flex justify-end mb-2">
           <button
             onClick={handleScan}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all text-neutral-400 hover:text-white"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--sclade-btn-secondary-bg)] border border-[var(--sclade-card-border)] hover:bg-[var(--sclade-card-bg)] rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all text-[var(--sclade-text-secondary)] hover:text-[var(--sclade-text-primary)]"
           >
             <RefreshCw className="w-3 h-3" />
             Rescan GitHub
@@ -211,14 +211,14 @@ export function SmartUpdateCenter({
         .map((suggestion) => (
         <div 
           key={suggestion.id}
-          className="group relative bg-neutral-900/50 hover:bg-neutral-900 border border-white/5 hover:border-white/20 rounded-2xl p-4 transition-all"
+          className="group relative bg-[var(--sclade-card-bg)] border border-[var(--sclade-card-border)] hover:border-blue-500/20 rounded-2xl p-4 transition-all"
         >
           <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <h4 className="text-[11px] font-black text-white uppercase tracking-wider mb-1">
-                {suggestion.title}
+            <div className="flex-1 min-w-0">
+              <h4 className="text-[11px] font-black text-[var(--sclade-text-primary)] uppercase tracking-wider mb-1 break-words">
+                {suggestion.title.replace(/_/g, " ")}
               </h4>
-              <p className="text-[10px] text-neutral-400 leading-relaxed line-clamp-2">
+              <p className="text-[10px] text-[var(--sclade-text-secondary)] leading-relaxed line-clamp-2">
                 {suggestion.description}
               </p>
               <div className="flex items-center gap-3 mt-3">
@@ -228,7 +228,7 @@ export function SmartUpdateCenter({
               </div>
             </div>
             
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 shrink-0">
               <button
                 onClick={() => setReviewing(suggestion)}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all"
@@ -237,7 +237,7 @@ export function SmartUpdateCenter({
               </button>
               <button
                 onClick={() => handleDiscard(suggestion.id)}
-                className="p-2 text-neutral-500 hover:text-red-400 transition-colors"
+                className="p-2 text-[var(--sclade-text-muted)] hover:text-red-500 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -249,38 +249,38 @@ export function SmartUpdateCenter({
       {/* Review Modal */}
       {reviewing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm">
-          <div className="bg-neutral-900 border border-white/10 rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl">
+          <div className="bg-[var(--sclade-bg)] border border-[var(--sclade-card-border)] rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl">
             <div className="p-8">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className="text-sm font-black text-white uppercase tracking-[2px] mb-1">Review AI Suggestion</h3>
-                  <p className="text-[10px] text-neutral-400 uppercase tracking-wider">{reviewing.type.replace('_', ' ')}</p>
+                  <h3 className="text-sm font-black text-[var(--sclade-text-primary)] uppercase tracking-[2px] mb-1">Review AI Suggestion</h3>
+                  <p className="text-[10px] text-[var(--sclade-text-secondary)] uppercase tracking-wider">{reviewing.type.replace('_', ' ')}</p>
                 </div>
                 <button 
                   onClick={() => setReviewing(null)}
-                  className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                  className="p-2 hover:bg-[var(--sclade-card-bg)] border border-[var(--sclade-card-border)] rounded-full transition-colors"
                 >
-                  <X className="w-5 h-5 text-neutral-500" />
+                  <X className="w-5 h-5 text-[var(--sclade-text-secondary)]" />
                 </button>
               </div>
 
               <div className="space-y-6">
-                <div className="p-6 bg-white/5 border border-white/10 rounded-2xl">
-                  <h5 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-3">AI Proposed Changes</h5>
-                  <div className="text-xs text-white leading-relaxed">
+                <div className="p-6 bg-[var(--sclade-input-bg)] border border-[var(--sclade-input-border)] rounded-2xl">
+                  <h5 className="text-[10px] font-bold text-[var(--sclade-text-secondary)] uppercase tracking-widest mb-3">AI Proposed Changes</h5>
+                  <div className="text-xs text-[var(--sclade-text-primary)] leading-relaxed">
                     {/* Render specific fields based on type */}
                     {reviewing.type === 'NEW_PROJECT' && (
                       <div className="space-y-4">
                         <div>
-                          <p className="text-[9px] font-bold text-neutral-500 uppercase mb-1">Project Name</p>
+                          <p className="text-[9px] font-bold text-[var(--sclade-text-secondary)] uppercase mb-1">Project Name</p>
                           <p className="font-bold">{JSON.parse(reviewing.proposedData).title}</p>
                         </div>
                         <div>
-                          <p className="text-[9px] font-bold text-neutral-500 uppercase mb-1">Description</p>
+                          <p className="text-[9px] font-bold text-[var(--sclade-text-secondary)] uppercase mb-1">Description</p>
                           <p>{JSON.parse(reviewing.proposedData).description}</p>
                         </div>
                         <div>
-                          <p className="text-[9px] font-bold text-neutral-500 uppercase mb-1">Key Highlights</p>
+                          <p className="text-[9px] font-bold text-[var(--sclade-text-secondary)] uppercase mb-1">Key Highlights</p>
                           <ul className="list-disc pl-4 mt-2 space-y-1">
                             {(JSON.parse(reviewing.proposedData).highlights || []).map((h: string, i: number) => (
                               <li key={i}>{h}</li>
@@ -294,10 +294,10 @@ export function SmartUpdateCenter({
                         {Object.entries(JSON.parse(reviewing.proposedData)).map(([cat, skills]: [string, any]) => (
                           skills.length > 0 && (
                             <div key={cat}>
-                              <p className="text-[9px] font-bold text-neutral-500 uppercase mb-2">{cat}</p>
+                              <p className="text-[9px] font-bold text-[var(--sclade-text-secondary)] uppercase mb-2">{cat}</p>
                               <div className="flex flex-wrap gap-2">
                                 {skills.map((s: string) => (
-                                  <span key={s} className="px-2 py-1 bg-white/10 rounded-lg text-[10px] font-bold">{s}</span>
+                                  <span key={s} className="px-2 py-1 bg-[var(--sclade-card-bg)] border border-[var(--sclade-card-border)] rounded-lg text-[10px] font-bold">{s}</span>
                                 ))}
                               </div>
                             </div>
@@ -318,7 +318,7 @@ export function SmartUpdateCenter({
                   </button>
                   <button
                     onClick={() => handleDiscard(reviewing.id)}
-                    className="px-8 py-4 bg-white/5 hover:bg-red-500/20 text-neutral-400 hover:text-red-400 rounded-2xl text-xs font-bold uppercase tracking-[2px] transition-all"
+                    className="px-8 py-4 bg-[var(--sclade-btn-secondary-bg)] border border-[var(--sclade-card-border)] hover:bg-red-500/10 text-[var(--sclade-text-secondary)] hover:text-red-400 rounded-2xl text-xs font-bold uppercase tracking-[2px] transition-all"
                   >
                     Discard
                   </button>

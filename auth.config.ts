@@ -34,6 +34,7 @@ export const authConfig = {
       
       if (session.user) {
         (session.user as any).accessToken = token.accessToken;
+        (session.user as any).githubUsername = token.githubUsername;
       }
       return session;
     },

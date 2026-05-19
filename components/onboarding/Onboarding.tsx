@@ -18,8 +18,9 @@ import {
   Loader2
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
-type Step = "welcome" | "sources" | "role" | "synthesis";
+type Step = "setup" | "synthesis";
 
 const DOMAINS = [
   { id: "frontend", label: "Frontend", icon: Layout, color: "text-blue-400" },
@@ -38,7 +39,7 @@ const EXPERIENCE_LEVELS = [
 ];
 
 export function Onboarding() {
-  const [step, setStep] = useState<Step>("welcome");
+  const [step, setStep] = useState<Step>("setup");
   const [github, setGithub] = useState("");
   const [linkedin, setLinkedin] = useState("");
   const [role, setRole] = useState("");
@@ -46,13 +47,13 @@ export function Onboarding() {
   const [isSynthesizing, setIsSynthesizing] = useState(false);
   const [synthesisLogs, setSynthesisLogs] = useState<string[]>([]);
   const router = useRouter();
+  const { data: session } = useSession();
 
-  const handleStart = () => setStep("sources");
-
-  const handleSourcesSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setStep("role");
-  };
+  useEffect(() => {
+    if (session?.user && (session.user as any).githubUsername) {
+      setGithub((session.user as any).githubUsername);
+    }
+  }, [session]);
 
   const startSynthesis = async () => {
     setStep("synthesis");
@@ -103,149 +104,142 @@ export function Onboarding() {
       </div>
 
       <AnimatePresence mode="wait">
-        {step === "welcome" && (
+        {step === "setup" && (
           <motion.div
-            key="welcome"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="max-w-2xl text-center px-6"
+            key="setup"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="w-full max-w-4xl px-6 my-8"
           >
-            <div className="w-24 h-24 bg-blue-600/10 border border-blue-500/20 rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 shadow-2xl shadow-blue-500/10 transform rotate-3">
-              <Rocket className="text-blue-500 w-12 h-12" />
+            {/* Header */}
+            <div className="text-center mb-10">
+              <div className="w-16 h-16 bg-blue-600/10 border border-blue-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-blue-500/5">
+                <Rocket className="text-blue-500 w-8 h-8 animate-pulse" />
+              </div>
+              <h1 className="text-4xl font-extrabold tracking-tight mb-2 bg-clip-text text-transparent bg-gradient-to-b from-white to-neutral-400">
+                Setup your Resummit Profile
+              </h1>
+              <p className="text-neutral-500 text-sm">
+                We've connected your account. Fill in your professional details to initiate analysis.
+              </p>
             </div>
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white to-neutral-500">
-              SCLADE<span className="text-blue-500">OS</span>
-            </h1>
-            <p className="text-neutral-400 text-xl md:text-2xl mb-12 font-light leading-relaxed">
-              The first AI system that understands your <br /> 
-              <span className="text-white font-medium italic">engineering DNA</span> automatically.
-            </p>
-            <button
-              onClick={handleStart}
-              className="group inline-flex items-center gap-3 bg-white text-black px-10 py-5 rounded-[2rem] font-bold text-lg hover:bg-neutral-200 transition-all shadow-xl shadow-white/5 active:scale-95"
-            >
-              Begin Initialization
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </button>
-          </motion.div>
-        )}
 
-        {step === "sources" && (
-          <motion.div
-            key="sources"
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -40 }}
-            className="w-full max-w-xl px-6"
-          >
-            <div className="flex items-center gap-3 mb-10">
-              <div className="w-10 h-10 bg-neutral-900 border border-white/5 rounded-xl flex items-center justify-center">
-                <Search className="w-5 h-5 text-neutral-400" />
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              {/* Left Column: Identity Info */}
+              <div className="lg:col-span-5 space-y-6">
+                <div className="bg-neutral-900/30 border border-white/5 rounded-3xl p-6 backdrop-blur-md">
+                  <h3 className="text-sm font-bold text-white mb-6 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping" />
+                    Identity Sources
+                  </h3>
+
+                  <div className="space-y-5">
+                    {/* GitHub Username input */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-[2px] text-neutral-500 block">GitHub Profile</label>
+                      <div className="group relative">
+                        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-neutral-500 group-focus-within:text-blue-500 transition-colors">
+                          <GitBranch className="w-5 h-5" />
+                        </div>
+                        <input
+                          required
+                          value={github}
+                          onChange={(e) => setGithub(e.target.value)}
+                          placeholder="github_username"
+                          className="w-full bg-neutral-950 border border-white/5 focus:border-blue-500/50 rounded-2xl py-4 pl-12 pr-4 text-sm text-white outline-none transition-all placeholder:text-neutral-600 font-mono"
+                        />
+                      </div>
+                    </div>
+
+                    {/* LinkedIn input */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-[2px] text-neutral-500 block">LinkedIn Profile (Optional)</label>
+                      <div className="group relative">
+                        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-neutral-500 group-focus-within:text-blue-500 transition-colors">
+                          <LinkIcon className="w-5 h-5" />
+                        </div>
+                        <input
+                          value={linkedin}
+                          onChange={(e) => setLinkedin(e.target.value)}
+                          placeholder="https://linkedin.com/in/username"
+                          className="w-full bg-neutral-950 border border-white/5 focus:border-blue-500/50 rounded-2xl py-4 pl-12 pr-4 text-sm text-white outline-none transition-all placeholder:text-neutral-600"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <h2 className="text-2xl font-bold">Identity Sources</h2>
+
+              {/* Right Column: Focus Areas */}
+              <div className="lg:col-span-7 space-y-6">
+                <div className="bg-neutral-900/30 border border-white/5 rounded-3xl p-6 backdrop-blur-md">
+                  <h3 className="text-sm font-bold text-white mb-6 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                    Career Specialization
+                  </h3>
+
+                  <div className="space-y-6">
+                    {/* Domain Grid */}
+                    <div>
+                      <label className="text-[10px] font-black uppercase tracking-[2px] text-neutral-500 mb-3 block">Target Domain</label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {DOMAINS.map((d) => (
+                          <button
+                            key={d.id}
+                            type="button"
+                            onClick={() => setRole(d.label)}
+                            className={`p-4 rounded-2xl border text-left transition-all flex flex-col justify-between h-[100px] ${
+                              role === d.label 
+                                ? "bg-blue-500/10 border-blue-500 shadow-lg shadow-blue-500/5" 
+                                : "bg-neutral-950 border-white/5 hover:border-white/10"
+                            }`}
+                          >
+                            <d.icon className={`w-5 h-5 ${d.color}`} />
+                            <span className="text-xs font-bold block mt-2 text-white">{d.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Experience Level Grid */}
+                    <div>
+                      <label className="text-[10px] font-black uppercase tracking-[2px] text-neutral-500 mb-3 block">Seniority</label>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {EXPERIENCE_LEVELS.map((level) => (
+                          <button
+                            key={level.id}
+                            type="button"
+                            onClick={() => setExp(level.id)}
+                            className={`p-3.5 rounded-2xl border text-left transition-all ${
+                              exp === level.id 
+                                ? "bg-blue-500/10 border-blue-500 shadow-lg shadow-blue-500/5" 
+                                : "bg-neutral-950 border-white/5 hover:border-white/10"
+                            }`}
+                          >
+                            <span className="text-xs font-bold block mb-1 text-white">{level.label}</span>
+                            <span className="text-[9px] text-neutral-500 uppercase tracking-widest">{level.desc}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            
-            <form onSubmit={handleSourcesSubmit} className="space-y-6">
-              <div className="group relative">
-                <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-neutral-500 group-focus-within:text-blue-500 transition-colors">
-                  <GitBranch className="w-6 h-6" />
-                </div>
-                <input
-                  required
-                  value={github}
-                  onChange={(e) => setGithub(e.target.value)}
-                  placeholder="GitHub Username"
-                  className="w-full bg-neutral-900/50 border border-white/5 focus:border-blue-500/50 rounded-[1.5rem] py-6 pl-14 pr-6 text-lg text-white outline-none transition-all placeholder:text-neutral-600"
-                />
-              </div>
 
-              <div className="group relative">
-                <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-neutral-500 group-focus-within:text-blue-500 transition-colors">
-                  <LinkIcon className="w-6 h-6" />
-                </div>
-                <input
-                  value={linkedin}
-                  onChange={(e) => setLinkedin(e.target.value)}
-                  placeholder="LinkedIn URL (Optional)"
-                  className="w-full bg-neutral-900/50 border border-white/5 focus:border-blue-500/50 rounded-[1.5rem] py-6 pl-14 pr-6 text-lg text-white outline-none transition-all placeholder:text-neutral-600"
-                />
-              </div>
-
+            {/* Bottom Button */}
+            <div className="mt-8 text-center">
               <button
-                type="submit"
-                className="w-full py-6 bg-blue-600 hover:bg-blue-500 text-white rounded-[1.5rem] font-bold text-lg transition-all shadow-xl shadow-blue-600/20 active:scale-[0.98] flex items-center justify-center gap-3"
+                type="button"
+                disabled={!github || !role || !exp}
+                onClick={startSynthesis}
+                className="group w-full max-w-md py-5 bg-white text-black hover:bg-neutral-200 disabled:opacity-50 disabled:hover:bg-white rounded-2xl font-bold text-base transition-all shadow-xl shadow-white/5 active:scale-[0.98] inline-flex items-center justify-center gap-3"
               >
-                Continue
-                <ArrowRight className="w-5 h-5" />
+                Analyze and Generate Resume
+                <Zap className="w-4 h-4 text-black shrink-0" />
               </button>
-            </form>
-          </motion.div>
-        )}
-
-        {step === "role" && (
-          <motion.div
-            key="role"
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -40 }}
-            className="w-full max-w-2xl px-6"
-          >
-            <div className="flex items-center gap-3 mb-10">
-              <div className="w-10 h-10 bg-neutral-900 border border-white/5 rounded-xl flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-neutral-400" />
-              </div>
-              <h2 className="text-2xl font-bold">Career Intent</h2>
             </div>
-
-            <div className="mb-8">
-              <label className="text-[10px] font-black uppercase tracking-[3px] text-neutral-500 mb-4 block">Target Domain</label>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {DOMAINS.map((d) => (
-                  <button
-                    key={d.id}
-                    onClick={() => setRole(d.label)}
-                    className={`p-5 rounded-2xl border text-left transition-all ${
-                      role === d.label 
-                        ? "bg-blue-500/10 border-blue-500 shadow-lg shadow-blue-500/10" 
-                        : "bg-neutral-900/50 border-white/5 hover:border-white/10"
-                    }`}
-                  >
-                    <d.icon className={`w-6 h-6 mb-3 ${d.color}`} />
-                    <span className="text-sm font-bold block">{d.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="mb-12">
-              <label className="text-[10px] font-black uppercase tracking-[3px] text-neutral-500 mb-4 block">Experience Level</label>
-              <div className="grid grid-cols-2 gap-3">
-                {EXPERIENCE_LEVELS.map((level) => (
-                  <button
-                    key={level.id}
-                    onClick={() => setExp(level.id)}
-                    className={`p-5 rounded-2xl border text-left transition-all ${
-                      exp === level.id 
-                        ? "bg-blue-500/10 border-blue-500 shadow-lg shadow-blue-500/10" 
-                        : "bg-neutral-900/50 border-white/5 hover:border-white/10"
-                    }`}
-                  >
-                    <span className="text-sm font-bold block mb-1">{level.label}</span>
-                    <span className="text-[10px] text-neutral-500 uppercase tracking-widest">{level.desc}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <button
-              disabled={!role || !exp}
-              onClick={startSynthesis}
-              className="w-full py-6 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-[1.5rem] font-bold text-lg transition-all shadow-xl shadow-blue-600/20 active:scale-[0.98] flex items-center justify-center gap-3"
-            >
-              Start Identity Synthesis
-              <Zap className="w-5 h-5" />
-            </button>
           </motion.div>
         )}
 

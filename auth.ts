@@ -6,23 +6,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   callbacks: {
     ...authConfig.callbacks,
-    async signIn({ user, account }) {
+    async signIn({ user, account, profile }) {
       if (!user.email) {
         console.warn("[AUTH] Sign-in denied: No email provided by provider.", { provider: account?.provider });
         return false;
       }
 
       try {
+        const githubUsername = account?.provider === "github" ? (profile as any)?.login : null;
+
         const dbUser = await prisma.user.upsert({
           where: { email: user.email },
           update: {
             name: user.name,
             image: user.image,
+            ...(githubUsername ? { githubUsername } : {}),
           },
           create: {
             email: user.email,
             name: user.name,
             image: user.image,
+            ...(githubUsername ? { githubUsername } : {}),
           },
         });
 
@@ -81,6 +85,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           });
           if (dbUser) {
             token.id = dbUser.id;
+            token.githubUsername = dbUser.githubUsername;
           }
         }
       }

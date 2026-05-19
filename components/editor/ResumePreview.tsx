@@ -254,11 +254,10 @@ function FormalTemplate({
                 {project.description && (
                   <div
                     style={{
-                      fontSize: "8pt",
-                      color: "#718096",
-                      fontStyle: "italic",
-                      marginBottom: "2px",
-                      marginTop: "1px",
+                      fontSize: "8.5pt",
+                      color: "#2d3748",
+                      marginBottom: "2.5px",
+                      marginTop: "1.5px",
                     }}
                   >
                     {project.description}

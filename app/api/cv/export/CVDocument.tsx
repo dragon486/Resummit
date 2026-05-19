@@ -117,10 +117,10 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   entryDescriptionItalic: {
-    fontSize: 8,
-    fontFamily: "Times-Italic",
-    color: "#718096",
-    marginBottom: 2,
+    fontSize: 8.5,
+    fontFamily: "Times-Roman",
+    color: "#2d3748",
+    marginBottom: 2.5,
   },
   // ── Bullet Lists ──
   bulletRow: {
