@@ -308,7 +308,11 @@ function FormalTemplate({
                     {edu.degree}
                   </span>
                   <span style={{ fontSize: "8.5pt", fontWeight: "bold" }}>
-                    {edu.year}
+                    {edu.current 
+                      ? (edu.year && edu.year.toLowerCase().includes("expected")
+                        ? edu.year
+                        : `Expected ${edu.year || "Present"}`)
+                      : edu.year}
                   </span>
                 </div>
                 <div style={{ fontSize: "8.5pt", color: "#4a5568" }}>

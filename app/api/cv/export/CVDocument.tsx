@@ -312,7 +312,13 @@ export const CVDocument = ({ cv, projects }: { cv: CVData; projects: ProjectData
               <View key={idx} style={styles.entry}>
                 <View style={styles.entryHeader}>
                   <Text style={styles.entryTitleLeft}>{edu.degree}</Text>
-                  <Text style={styles.entryTimeRight}>{edu.year}</Text>
+                  <Text style={styles.entryTimeRight}>
+                    {edu.current 
+                      ? (edu.year && edu.year.toLowerCase().includes("expected")
+                        ? edu.year
+                        : `Expected ${edu.year || "Present"}`)
+                      : edu.year}
+                  </Text>
                 </View>
                 <Text style={styles.entrySubtitle}>
                   {edu.school}{edu.gpa ? ` • ${

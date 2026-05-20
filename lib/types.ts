@@ -19,6 +19,7 @@ export interface CVEducation {
   year: string;
   gpa?: string;
   gpaType?: "gpa" | "cgpa" | "percentage";
+  current?: boolean;
 }
 
 export interface CVData {
