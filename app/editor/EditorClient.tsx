@@ -48,6 +48,45 @@ function InlineEdit({
   );
 }
 
+function parseAchievementString(str: string) {
+  if (!str) return { title: "", date: "", url: "" };
+  if (str.trim().startsWith("{")) {
+    try {
+      const parsed = JSON.parse(str);
+      return {
+        title: parsed.title || "",
+        date: parsed.date || "",
+        url: parsed.url || "",
+      };
+    } catch {
+      // ignore
+    }
+  }
+  const urlRegex = /(https?:\/\/[^\s]+|(?:credly\.com|coursera\.org|github\.com|linkedin\.com|devpost\.com|credly\.com\/badges)\/[^\s]+)/gi;
+  let url: string | null = null;
+  const urlMatch = str.match(urlRegex);
+  if (urlMatch) {
+    url = urlMatch[0];
+  }
+  
+  let tempStr = str.replace(urlRegex, "").trim();
+  
+  const dateRegex = /\(([^)]*(?:\d{4}|\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b)[^)]*)\)/i;
+  let date: string | null = null;
+  const dateMatch = tempStr.match(dateRegex);
+  if (dateMatch) {
+    date = dateMatch[1];
+  }
+  
+  let title = tempStr.replace(dateRegex, "").trim();
+  title = title.replace(/\s*[-–—:]\s*verify\s*$/i, "");
+  title = title.replace(/\s*[-–—:]\s*$/, "");
+  title = title.replace(/\s*[-–—:]\s*verify:\s*$/i, "");
+  title = title.trim();
+  
+  return { title, date, url };
+}
+
 function SkillTag({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
     <span className="inline-flex items-center gap-1.5 bg-neutral-800/80 border border-white/10 text-neutral-300 px-3 py-1.5 rounded-full text-[11px] font-semibold group hover:border-blue-500/30 transition-all cursor-default">
@@ -1102,31 +1141,64 @@ export function EditorClient({
             <Plus className="w-3.5 h-3.5" /> Achievement
           </button>
         </div>
-        <div className="space-y-3">
-          {achievements.map((ach, idx) => (
-            <div key={idx} className="flex gap-3 items-start group">
-              <div className="mt-4 w-1.5 h-1.5 rounded-full bg-neutral-800 shrink-0 group-hover:bg-blue-500 transition-colors" />
-              <div className="flex-1">
-                <InlineEdit
-                  value={ach}
-                  onChange={(v) => {
-                    const nu = [...achievements];
-                    nu[idx] = v;
-                    setAchievements(nu);
-                  }}
-                  placeholder="e.g. Google Cloud Professional Architect Certified"
-                  multiline
-                  rows={2}
-                />
+        <div className="space-y-4">
+          {achievements.map((ach, idx) => {
+            const parsed = parseAchievementString(ach);
+            
+            const updatePart = (field: "title" | "date" | "url", val: string) => {
+              const nu = [...achievements];
+              const updatedObj = {
+                title: field === "title" ? val : parsed.title,
+                date: field === "date" ? val : parsed.date,
+                url: field === "url" ? val : parsed.url || "",
+              };
+              nu[idx] = JSON.stringify(updatedObj);
+              setAchievements(nu);
+            };
+
+            return (
+              <div key={idx} className="relative group p-4 bg-[#0d0d0d] rounded-xl border border-white/[0.03] hover:border-white/10 transition-all flex flex-col gap-4">
+                <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setAchievements(achievements.filter((_, i) => i !== idx))}
+                    className="text-neutral-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="col-span-3">
+                    <SectionLabel>Achievement / Certificate Title</SectionLabel>
+                    <InlineEdit
+                      value={parsed.title}
+                      onChange={(v) => updatePart("title", v)}
+                      placeholder="e.g. AWS Certified Solutions Architect"
+                    />
+                  </div>
+                  
+                  <div className="col-span-1">
+                    <SectionLabel>Date / Year</SectionLabel>
+                    <InlineEdit
+                      value={parsed.date || ""}
+                      onChange={(v) => updatePart("date", v)}
+                      placeholder="e.g. 2025"
+                    />
+                  </div>
+                  
+                  <div className="col-span-2">
+                    <SectionLabel>Verification Link (URL)</SectionLabel>
+                    <InlineEdit
+                      value={parsed.url || ""}
+                      onChange={(v) => updatePart("url", v)}
+                      placeholder="e.g. credly.com/badges/abc"
+                    />
+                  </div>
+                </div>
               </div>
-              <button
-                onClick={() => setAchievements(achievements.filter((_, i) => i !== idx))}
-                className="mt-2 text-neutral-700 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
