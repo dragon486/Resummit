@@ -404,6 +404,7 @@ export function EditorClient({
   const [education, setEducation] = useState<CVEducation[]>(() => ensureArray(initialData.education));
   const [achievements, setAchievements] = useState<string[]>(() => ensureArray(initialData.achievements || [""]));  
   const [achFetching, setAchFetching] = useState<Record<number, boolean>>({});
+  const [achNote, setAchNote] = useState<Record<number, string>>({});
   
   // LIVE PROJECTS SYNC: Remove redundant fetch on mount as initialData is already version-specific
   // and fetching from /api/projects would corrupt specialized versions with 'Main' data.
@@ -1150,26 +1151,61 @@ export function EditorClient({
               const url = parsed.url?.trim();
               if (!url) return;
               setAchFetching((prev) => ({ ...prev, [idx]: true }));
+              setAchNote((prev) => ({ ...prev, [idx]: "" }));
               try {
                 const res = await fetch("/api/cv/fetch-credential", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ url }),
                 });
-                if (res.ok) {
-                  const data = await res.json();
+                const data = await res.json();
+
+                if (data.cannotRead) {
+                  // Can't scrape — tell user, but still apply issuer if we got one
+                  setAchNote((prev) => ({
+                    ...prev,
+                    [idx]: data.note ?? "Could not read this link. Please fill title and date manually.",
+                  }));
+                  if (data.issuer && !parsed.title) {
+                    // At least pre-fill issuer into title as a hint
+                    const nu = [...achievements];
+                    nu[idx] = JSON.stringify({ title: data.issuer + " Certificate", date: parsed.date, url: parsed.url });
+                    setAchievements(nu);
+                  }
+                  return;
+                }
+
+                if (res.ok && (data.title || data.date || data.issuer)) {
                   const nu = [...achievements];
                   const current = parseAchievementString(nu[idx]);
-                  const updated = {
-                    title: data.title ? (data.issuer ? `${data.title} – ${data.issuer}` : data.title) : current.title,
+                  // Build title: "Cert Name – Issuer" only if both exist
+                  let newTitle = current.title;
+                  if (data.title) {
+                    newTitle = data.issuer && !data.title.toLowerCase().includes(data.issuer.toLowerCase())
+                      ? `${data.title} – ${data.issuer}`
+                      : data.title;
+                  } else if (data.issuer && !current.title) {
+                    newTitle = data.issuer + " Certificate";
+                  }
+                  nu[idx] = JSON.stringify({
+                    title: newTitle,
                     date: data.date || current.date,
                     url: current.url || "",
-                  };
-                  nu[idx] = JSON.stringify(updated);
+                  });
                   setAchievements(nu);
+                  setAchNote((prev) => ({
+                    ...prev,
+                    [idx]: data.date ? "✓ Auto-filled from link" : "✓ Title auto-filled. Enter date manually.",
+                  }));
+                } else {
+                  setAchNote((prev) => ({
+                    ...prev,
+                    [idx]: "Couldn't read metadata from this link — please fill manually.",
+                  }));
                 }
               } catch (e) {
                 console.error("[auto-fill]", e);
+                setAchNote((prev) => ({ ...prev, [idx]: "Network error — please fill manually." }));
               } finally {
                 setAchFetching((prev) => ({ ...prev, [idx]: false }));
               }
@@ -1254,12 +1290,16 @@ export function EditorClient({
                     </div>
                     <InlineEdit
                       value={parsed.url || ""}
-                      onChange={(v) => updatePart("url", v)}
-                      placeholder="e.g. credly.com/badges/abc"
+                      onChange={(v) => { updatePart("url", v); setAchNote((p) => ({ ...p, [idx]: "" })); }}
+                      placeholder="e.g. credly.com/badges/abc or drive.google.com/..."
                     />
-                    {parsed.url?.trim() && (
-                      <p className="mt-1 text-[10px] text-neutral-600">Paste the link then tap Auto-fill to fetch title &amp; date automatically.</p>
-                    )}
+                    {achNote[idx] ? (
+                      <p className={`mt-1.5 text-[10px] font-semibold ${achNote[idx].startsWith("✓") ? "text-emerald-500" : "text-amber-500"}`}>
+                        {achNote[idx]}
+                      </p>
+                    ) : parsed.url?.trim() ? (
+                      <p className="mt-1 text-[10px] text-neutral-600">Tap ✨ Auto-fill to extract title &amp; date from this link.</p>
+                    ) : null}
                   </div>
                 </div>
               </div>

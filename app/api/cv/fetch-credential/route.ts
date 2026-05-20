@@ -3,115 +3,165 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ─── Known Platform Map ───────────────────────────────────────────────────────
+// Maps domain patterns → { issuer, canScrapeDate }
+const PLATFORM_MAP: Array<{ pattern: RegExp; issuer: string; canScrapeDate: boolean }> = [
+  { pattern: /credly\.com/i,           issuer: "Credly",            canScrapeDate: true  },
+  { pattern: /coursera\.org/i,         issuer: "Coursera",          canScrapeDate: true  },
+  { pattern: /udemy\.com/i,            issuer: "Udemy",             canScrapeDate: false },
+  { pattern: /freecodecamp\.org/i,     issuer: "freeCodeCamp",      canScrapeDate: true  },
+  { pattern: /skillshop\.google/i,     issuer: "Google",            canScrapeDate: false },
+  { pattern: /google\.com/i,           issuer: "Google",            canScrapeDate: false },
+  { pattern: /drive\.google\.com/i,    issuer: "Google Drive",      canScrapeDate: false },
+  { pattern: /aws\.amazon\.com/i,      issuer: "Amazon Web Services", canScrapeDate: false },
+  { pattern: /amazon\.com/i,           issuer: "Amazon Web Services", canScrapeDate: false },
+  { pattern: /microsoft\.com/i,        issuer: "Microsoft",         canScrapeDate: false },
+  { pattern: /learn\.microsoft\.com/i, issuer: "Microsoft",         canScrapeDate: false },
+  { pattern: /linkedin\.com/i,         issuer: "LinkedIn",          canScrapeDate: false },
+  { pattern: /infosys\.com/i,          issuer: "Infosys",           canScrapeDate: false },
+  { pattern: /springboard\.com/i,      issuer: "Springboard",       canScrapeDate: true  },
+  { pattern: /github\.com/i,           issuer: "GitHub",            canScrapeDate: false },
+  { pattern: /devpost\.com/i,          issuer: "Devpost",           canScrapeDate: true  },
+  { pattern: /hackerrank\.com/i,       issuer: "HackerRank",        canScrapeDate: false },
+  { pattern: /leetcode\.com/i,         issuer: "LeetCode",          canScrapeDate: false },
+  { pattern: /pluralsight\.com/i,      issuer: "Pluralsight",       canScrapeDate: true  },
+  { pattern: /edx\.org/i,              issuer: "edX",               canScrapeDate: true  },
+  { pattern: /udacity\.com/i,          issuer: "Udacity",           canScrapeDate: true  },
+  { pattern: /datacamp\.com/i,         issuer: "DataCamp",          canScrapeDate: true  },
+  { pattern: /alison\.com/i,           issuer: "Alison",            canScrapeDate: true  },
+];
 
-function extractMeta(html: string, property: string): string | null {
-  // og:xxx  /  name="xxx"  /  itemprop="xxx"
-  const patterns = [
-    new RegExp(`<meta[^>]+property=["']${property}["'][^>]+content=["']([^"']+)["']`, "i"),
-    new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+property=["']${property}["']`, "i"),
-    new RegExp(`<meta[^>]+name=["']${property}["'][^>]+content=["']([^"']+)["']`, "i"),
-    new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+name=["']${property}["']`, "i"),
-    new RegExp(`<meta[^>]+itemprop=["']${property}["'][^>]+content=["']([^"']+)["']`, "i"),
-  ];
-  for (const re of patterns) {
-    const m = html.match(re);
-    if (m?.[1]) return m[1].trim();
+function detectPlatform(url: string) {
+  for (const p of PLATFORM_MAP) {
+    if (p.pattern.test(url)) return p;
+  }
+  return null;
+}
+
+// ─── HTML Meta Helpers ────────────────────────────────────────────────────────
+
+function extractMeta(html: string, ...props: string[]): string | null {
+  for (const property of props) {
+    const patterns = [
+      new RegExp(`<meta[^>]+property=["']${property}["'][^>]+content=["']([^"']{1,300})["']`, "i"),
+      new RegExp(`<meta[^>]+content=["']([^"']{1,300})["'][^>]+property=["']${property}["']`, "i"),
+      new RegExp(`<meta[^>]+name=["']${property}["'][^>]+content=["']([^"']{1,300})["']`, "i"),
+      new RegExp(`<meta[^>]+content=["']([^"']{1,300})["'][^>]+name=["']${property}["']`, "i"),
+      new RegExp(`<meta[^>]+itemprop=["']${property}["'][^>]+content=["']([^"']{1,300})["']`, "i"),
+    ];
+    for (const re of patterns) {
+      const m = html.match(re);
+      if (m?.[1]) return m[1].trim();
+    }
   }
   return null;
 }
 
 function extractTitle(html: string): string | null {
-  const og = extractMeta(html, "og:title") || extractMeta(html, "twitter:title");
+  const og = extractMeta(html, "og:title", "twitter:title");
   if (og) return og;
-  const m = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+  const m = html.match(/<title[^>]*>([^<]{1,200})<\/title>/i);
   return m?.[1]?.trim() ?? null;
 }
 
-/** Try to parse a human-readable date from whatever string we find */
+/** Normalise any date string to "Mon YYYY" or "YYYY" */
 function parseHumanDate(raw: string): string | null {
   if (!raw) return null;
-
-  // ISO  2024-06-15 / 2024-06
+  // ISO 2024-06-15 or 2024-06
   const isoM = raw.match(/(\d{4})-(\d{2})(?:-\d{2})?/);
   if (isoM) {
     const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
     const month = months[parseInt(isoM[2], 10) - 1];
     return month ? `${month} ${isoM[1]}` : isoM[1];
   }
-
   // "June 2024" / "Jun 2024"
   const longM = raw.match(/\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|June?|July?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{4})/i);
   if (longM) {
-    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-    const abbr = months.find((m) => longM[1].toLowerCase().startsWith(m.toLowerCase()));
-    return abbr ? `${abbr} ${longM[2]}` : `${longM[1]} ${longM[2]}`;
+    const ABBRS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const abbr = ABBRS.find((m) => longM[1].toLowerCase().startsWith(m.toLowerCase()));
+    return abbr ? `${abbr} ${longM[2]}` : `${longM[1].slice(0, 3)} ${longM[2]}`;
   }
-
-  // just a year
+  // bare year
   const yearM = raw.match(/\b(20\d{2})\b/);
   if (yearM) return yearM[1];
-
   return null;
 }
 
-/** Credly badge public API */
-async function scrapeCredy(url: string) {
-  // Extract badge slug from URL like credly.com/badges/abc-123 or /earn/...
-  const slugM = url.match(/credly\.com\/badges\/([\w-]+)/i);
-  if (!slugM) return null;
-  try {
-    const api = `https://api.credly.com/v1/obi/v2/badges/${slugM[1]}`;
-    const res = await fetch(api, { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(6000) });
-    if (!res.ok) return null;
-    const json = await res.json();
-    const badge = json?.badge ?? json;
-    const title = badge?.name ?? badge?.["@graph"]?.[0]?.name ?? null;
-    const issuedOn = badge?.issued_at ?? badge?.issuedOn ?? null;
-    const issuer = badge?.issuer?.name ?? badge?.issuer?.["name"] ?? null;
-    return {
-      title: title ? String(title) : null,
-      date: parseHumanDate(issuedOn ?? ""),
-      issuer: issuer ? String(issuer) : null,
-    };
-  } catch { return null; }
+// ─── Platform-specific Scrapers ───────────────────────────────────────────────
+
+/** Credly public badge embed API */
+async function fetchCredy(url: string) {
+  // Formats: credly.com/badges/{slug}  OR  credly.com/badges/{slug}/public_url
+  const m = url.match(/credly\.com\/badges\/([\w-]+)/i);
+  if (!m) return null;
+
+  const slug = m[1];
+
+  // Try the embed JSON endpoint — publicly available, no auth
+  const endpoints = [
+    `https://www.credly.com/badges/${slug}/public_url`,
+    `https://www.credly.com/badges/${slug}`,
+  ];
+
+  for (const endpoint of endpoints) {
+    try {
+      const res = await fetch(endpoint, {
+        headers: {
+          "Accept": "text/html,application/json",
+          "User-Agent": "Mozilla/5.0 (compatible; Sclade/1.0)",
+        },
+        signal: AbortSignal.timeout(7000),
+        redirect: "follow",
+      });
+      if (!res.ok) continue;
+      const ct = res.headers.get("content-type") ?? "";
+      if (ct.includes("json")) {
+        const json = await res.json();
+        const b = json?.data ?? json?.badge ?? json;
+        return {
+          title: b?.badge?.name ?? b?.name ?? null,
+          date: parseHumanDate(b?.issued_at ?? b?.issuedOn ?? ""),
+          issuer: b?.badge?.issuer?.summary ?? b?.issuer?.name ?? "Credly",
+        };
+      }
+      const html = await res.text();
+      const title = extractTitle(html);
+      const dateStr = extractMeta(html, "article:published_time", "og:updated_time", "datePublished");
+      return {
+        title,
+        date: parseHumanDate(dateStr ?? ""),
+        issuer: extractMeta(html, "og:site_name") ?? "Credly",
+      };
+    } catch { continue; }
+  }
+  return null;
 }
 
-/** Generic OG/meta scraper */
-async function scrapeGeneric(url: string) {
+/** Generic OG scraper for open pages */
+async function scrapeOG(url: string) {
   try {
     const res = await fetch(url, {
       headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; Sclade/1.0; +https://sclade.app)",
-        Accept: "text/html",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml",
+        "Accept-Language": "en-US,en;q=0.9",
       },
-      signal: AbortSignal.timeout(7000),
+      signal: AbortSignal.timeout(8000),
       redirect: "follow",
     });
     if (!res.ok) return null;
     const html = await res.text();
-
     const title = extractTitle(html);
-    const dateStr =
-      extractMeta(html, "article:published_time") ??
-      extractMeta(html, "og:updated_time") ??
-      extractMeta(html, "datePublished") ??
-      extractMeta(html, "date") ??
-      null;
-    const issuer =
-      extractMeta(html, "og:site_name") ??
-      extractMeta(html, "publisher") ??
-      null;
-
-    return {
-      title: title ?? null,
-      date: parseHumanDate(dateStr ?? ""),
-      issuer: issuer ?? null,
-    };
+    const dateStr = extractMeta(html,
+      "article:published_time", "og:updated_time",
+      "datePublished", "date", "DC.date",
+    );
+    const issuer = extractMeta(html, "og:site_name", "publisher");
+    return { title, date: parseHumanDate(dateStr ?? ""), issuer };
   } catch { return null; }
 }
 
-// ─── Route ───────────────────────────────────────────────────────────────────
+// ─── Route ────────────────────────────────────────────────────────────────────
 
 export async function POST(req: Request) {
   try {
@@ -120,31 +170,55 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing url" }, { status: 400 });
     }
 
-    // Normalise URL
-    const fullUrl = url.startsWith("http") ? url : `https://${url}`;
+    const fullUrl = url.trim().startsWith("http") ? url.trim() : `https://${url.trim()}`;
+    const platform = detectPlatform(fullUrl);
+
+    // ── Google Drive or other auth-gated links ──────────────────────────────
+    if (/drive\.google\.com/i.test(fullUrl) || /docs\.google\.com/i.test(fullUrl)) {
+      return NextResponse.json({
+        title: null,
+        date: null,
+        issuer: "Google",
+        note: "Google Drive links are private — please fill the title and date manually.",
+        cannotRead: true,
+      });
+    }
 
     let result: { title: string | null; date: string | null; issuer: string | null } | null = null;
 
-    // Try specialised scrapers first
+    // ── Specialised scrapers ────────────────────────────────────────────────
     if (/credly\.com/i.test(fullUrl)) {
-      result = await scrapeCredy(fullUrl);
+      result = await fetchCredy(fullUrl);
     }
 
-    // Always fall back to generic OG scraper
+    // ── Generic OG fallback ─────────────────────────────────────────────────
     if (!result || (!result.title && !result.date)) {
-      const generic = await scrapeGeneric(fullUrl);
+      const og = await scrapeOG(fullUrl);
       result = {
-        title: result?.title ?? generic?.title ?? null,
-        date: result?.date ?? generic?.date ?? null,
-        issuer: result?.issuer ?? generic?.issuer ?? null,
+        title: result?.title ?? og?.title ?? null,
+        date: result?.date ?? og?.date ?? null,
+        issuer: result?.issuer ?? og?.issuer ?? platform?.issuer ?? null,
       };
     }
 
-    if (!result) {
-      return NextResponse.json({ error: "Could not extract metadata" }, { status: 422 });
+    // Even if we can't scrape date/title, return the detected issuer so the
+    // user gets at least partial auto-fill
+    if (!result.title && !result.date && !result.issuer) {
+      return NextResponse.json({
+        title: null,
+        date: null,
+        issuer: platform?.issuer ?? null,
+        note: "Could not extract metadata from this URL. Please fill manually.",
+        cannotRead: true,
+      });
     }
 
-    return NextResponse.json(result);
+    return NextResponse.json({
+      title: result.title,
+      date: result.date,
+      issuer: result.issuer ?? platform?.issuer ?? null,
+      cannotRead: false,
+    });
   } catch (err: any) {
     console.error("[fetch-credential] ERROR:", err);
     return NextResponse.json({ error: err.message ?? "Failed" }, { status: 500 });
