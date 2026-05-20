@@ -22,6 +22,32 @@ export function ResumePreview({
   return <FormalTemplate data={data} projects={projects} mode={mode} />;
 }
 
+function parseAchievementString(str: string) {
+  const urlRegex = /(https?:\/\/[^\s]+|(?:credly\.com|coursera\.org|github\.com|linkedin\.com|devpost\.com|credly\.com\/badges)\/[^\s]+)/gi;
+  let url: string | null = null;
+  const urlMatch = str.match(urlRegex);
+  if (urlMatch) {
+    url = urlMatch[0];
+  }
+  
+  let tempStr = str.replace(urlRegex, "").trim();
+  
+  const dateRegex = /\(([^)]*(?:\d{4}|\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b)[^)]*)\)/i;
+  let date: string | null = null;
+  const dateMatch = tempStr.match(dateRegex);
+  if (dateMatch) {
+    date = dateMatch[1];
+  }
+  
+  let title = tempStr.replace(dateRegex, "").trim();
+  title = title.replace(/\s*[-–—:]\s*verify\s*$/i, "");
+  title = title.replace(/\s*[-–—:]\s*$/, "");
+  title = title.replace(/\s*[-–—:]\s*verify:\s*$/i, "");
+  title = title.trim();
+  
+  return { title, date, url };
+}
+
 function parseAndRenderLinks(text: string) {
   const urlRegex = /(https?:\/\/[^\s]+|(?:credly\.com|coursera\.org|github\.com|linkedin\.com|devpost\.com|credly\.com\/badges)\/[^\s]+)/gi;
   const parts = text.split(urlRegex);
@@ -405,23 +431,43 @@ function FormalTemplate({
       {data.achievements &&
         data.achievements.some((a) => a.trim()) && (
           <Section title="Achievements &amp; Certifications">
-            <ul style={{ margin: "0 0 0 14px", padding: 0, listStyleType: "disc" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
               {data.achievements
                 .filter((a) => a.trim())
-                .map((ach, idx) => (
-                  <li
-                    key={idx}
-                    style={{
-                      fontSize: "8.5pt",
-                      lineHeight: 1.45,
-                      color: "#2d3748",
-                      marginBottom: "1px",
-                    }}
-                  >
-                    {parseAndRenderLinks(ach)}
-                  </li>
-                ))}
-            </ul>
+                .map((ach, idx) => {
+                  const { title, date, url } = parseAchievementString(ach);
+                  const href = url ? (url.startsWith("http") ? url : `https://${url}`) : null;
+                  return (
+                    <div key={idx} style={{ display: "flex", alignItems: "baseline" }}>
+                      <span style={{ fontSize: "8.5pt", marginRight: "6px", color: "#2d3748" }}>•</span>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flex: 1 }}>
+                        <span style={{ fontSize: "8.5pt", color: "#2d3748" }}>
+                          {title}
+                          {href && (
+                            <>
+                              {" "}
+                              <a
+                                href={href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ textDecoration: "underline", color: "#1a0dab", fontWeight: "bold" }}
+                                className="hover:text-blue-600 transition-colors"
+                              >
+                                [Link]
+                              </a>
+                            </>
+                          )}
+                        </span>
+                        {date && (
+                          <span style={{ fontSize: "8.5pt", fontWeight: "bold", color: "#1a202c", whiteSpace: "nowrap", marginLeft: "8px" }}>
+                            {date}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
           </Section>
         )}
     </div>

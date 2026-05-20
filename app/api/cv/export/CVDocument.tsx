@@ -146,6 +146,32 @@ const styles = StyleSheet.create({
   },
 });
 
+function parseAchievementString(str: string) {
+  const urlRegex = /(https?:\/\/[^\s]+|(?:credly\.com|coursera\.org|github\.com|linkedin\.com|devpost\.com|credly\.com\/badges)\/[^\s]+)/gi;
+  let url: string | null = null;
+  const urlMatch = str.match(urlRegex);
+  if (urlMatch) {
+    url = urlMatch[0];
+  }
+  
+  let tempStr = str.replace(urlRegex, "").trim();
+  
+  const dateRegex = /\(([^)]*(?:\d{4}|\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b)[^)]*)\)/i;
+  let date: string | null = null;
+  const dateMatch = tempStr.match(dateRegex);
+  if (dateMatch) {
+    date = dateMatch[1];
+  }
+  
+  let title = tempStr.replace(dateRegex, "").trim();
+  title = title.replace(/\s*[-–—:]\s*verify\s*$/i, "");
+  title = title.replace(/\s*[-–—:]\s*$/, "");
+  title = title.replace(/\s*[-–—:]\s*verify:\s*$/i, "");
+  title = title.trim();
+  
+  return { title, date, url };
+}
+
 const parseAndRenderPdfText = (text: string) => {
   const urlRegex = /(https?:\/\/[^\s]+|(?:credly\.com|coursera\.org|github\.com|linkedin\.com|devpost\.com|credly\.com\/badges)\/[^\s]+)/gi;
   const parts = text.split(urlRegex);
@@ -402,7 +428,35 @@ export const CVDocument = ({ cv, projects }: { cv: CVData; projects: ProjectData
         {cv.achievements && cv.achievements.some((a: string) => a.trim()) && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Achievements &amp; Certifications</Text>
-            <BulletList bullets={cv.achievements.filter((a: string) => a.trim())} />
+            {cv.achievements
+              .filter((a: string) => a.trim())
+              .map((ach: string, idx: number) => {
+                const { title, date, url } = parseAchievementString(ach);
+                const href = url ? (url.startsWith("http") ? url : `https://${url}`) : null;
+                return (
+                  <View key={idx} style={{ flexDirection: "row", marginBottom: 2.5, paddingLeft: 12, alignItems: "baseline" }}>
+                    <View style={[styles.bulletDot, { marginTop: 3.5 }]} />
+                    <View style={{ flex: 1, flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
+                      <Text style={[styles.bulletText, { flex: 1 }]}>
+                        {title}
+                        {href ? (
+                          <>
+                            {" "}
+                            <Link style={{ textDecoration: "underline", color: "#1a0dab", fontFamily: "Times-Bold" }} src={href}>
+                              [Link]
+                            </Link>
+                          </>
+                        ) : null}
+                      </Text>
+                      {date ? (
+                        <Text style={{ fontSize: 8.5, fontFamily: "Times-Bold", color: "#1a202c", marginLeft: 10 }}>
+                          {date}
+                        </Text>
+                      ) : null}
+                    </View>
+                  </View>
+                );
+              })}
           </View>
         )}
 
