@@ -1033,36 +1033,36 @@ export function EditorClient({
           >
             <Trash2 className="w-4 h-4" />
           </button>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-3">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2">
               <SectionLabel>Institution</SectionLabel>
               <InlineEdit value={edu.school} onChange={(v) => updateEdu(i, "school", v)} placeholder="University Name" />
             </div>
-            <div className="col-span-1">
+            <div className="col-span-2">
               <SectionLabel>Degree / Certification</SectionLabel>
               <InlineEdit value={edu.degree} onChange={(v) => updateEdu(i, "degree", v)} placeholder="B.Sc. in Engineering" />
             </div>
-             <div className="col-span-1">
-                <div className="flex items-center justify-between mb-1.5">
-                  <SectionLabel>Completion</SectionLabel>
-                  <button
-                    type="button"
-                    onClick={() => updateEdu(i, "current" as any, !edu.current)}
-                    className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider transition-all select-none cursor-pointer ${
-                      edu.current
-                        ? "bg-emerald-600 text-white shadow-[0_2px_8px_rgba(16,185,129,0.2)] font-bold"
-                        : "bg-neutral-900 text-neutral-500 border border-white/5 hover:text-neutral-300"
-                    }`}
-                  >
-                    Pursuing
-                  </button>
-                </div>
-                <InlineEdit 
-                  value={edu.year} 
-                  onChange={(v) => updateEdu(i, "year", v)} 
-                  placeholder={edu.current ? "Expected 2027" : "2024"} 
-                />
-             </div>
+            <div className="col-span-1">
+               <div className="flex items-center justify-between mb-1.5">
+                 <SectionLabel>Completion</SectionLabel>
+                 <button
+                   type="button"
+                   onClick={() => updateEdu(i, "current" as any, !edu.current)}
+                   className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider transition-all select-none cursor-pointer ${
+                     edu.current
+                       ? "bg-emerald-600 text-white shadow-[0_2px_8px_rgba(16,185,129,0.2)] font-bold"
+                       : "bg-neutral-900 text-neutral-500 border border-white/5 hover:text-neutral-300"
+                   }`}
+                 >
+                   Pursuing
+                 </button>
+               </div>
+               <InlineEdit 
+                 value={edu.year} 
+                 onChange={(v) => updateEdu(i, "year", v)} 
+                 placeholder={edu.current ? "Expected 2027" : "2024"} 
+               />
+            </div>
             <div className="col-span-1">
                <SectionLabel>GPA / Mark Type</SectionLabel>
                <div className="flex bg-[#0a0a0a] border border-white/[0.05] p-0.5 rounded-lg text-[8px] font-black uppercase tracking-wider gap-0.5 select-none w-full mb-1.5 shrink-0">
