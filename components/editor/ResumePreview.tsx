@@ -30,12 +30,22 @@ function parseAchievementString(str: string) {
     try {
       const parsed = JSON.parse(trimmed);
       return {
-        title: parsed.title || "",
-        date: parsed.date || null,
-        url: parsed.url ? parsed.url.trim() : null,
+        title: (parsed.title || "").replace(/\s*\[Link\]\s*$/i, "").trim(),
+        date: (parsed.date || "").replace(/\s*\[Link\]\s*$/i, "").trim() || null,
+        url: parsed.url ? parsed.url.replace(/\s*\[Link\]\s*$/i, "").trim() : null,
       };
     } catch {
-      // fall through to legacy regex
+      // JSON is malformed — try extracting fields manually with regex
+      const titleM = trimmed.match(/["']title["']\s*:\s*["']([^"']+)["']/);
+      const dateM  = trimmed.match(/["']date["']\s*:\s*["']([^"']+)["']/);
+      const urlM   = trimmed.match(/["']url["']\s*:\s*["']([^"']+)["']/);
+      if (titleM || dateM) {
+        return {
+          title: titleM?.[1]?.trim() || "",
+          date: dateM?.[1]?.replace(/\s*\[Link\]\s*$/i, "").trim() || null,
+          url: urlM?.[1]?.replace(/\s*\[Link\]\s*$/i, "").trim() || null,
+        };
+      }
     }
   }
   // Legacy regex fallback for plain-text achievements
@@ -44,12 +54,25 @@ function parseAchievementString(str: string) {
   const urlMatch = str.match(urlRegex);
   if (urlMatch) url = urlMatch[0];
   let tempStr = str.replace(urlRegex, "").trim();
-  const dateRegex = /\(([^)]*(?:\d{4}|\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b)[^)]*)\)/i;
+  // Try parenthesised date first: (Dec 2025) or (2025)
+  const parenDateRegex = /\(([^)]*(?:\d{4}|\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b)[^)]*)\)/i;
   let date: string | null = null;
-  const dateMatch = tempStr.match(dateRegex);
-  if (dateMatch) date = dateMatch[1];
-  let title = tempStr.replace(dateRegex, "").trim();
-  title = title.replace(/\s*[-–—:]\s*$/, "").trim();
+  const parenMatch = tempStr.match(parenDateRegex);
+  if (parenMatch) {
+    date = parenMatch[1].trim();
+    tempStr = tempStr.replace(parenDateRegex, "").trim();
+  } else {
+    // Bare month-year: "Dec 2025" or just "2025" at end of string
+    const bareMonthYear = tempStr.match(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(20\d{2})\b/i);
+    const bareYear = tempStr.match(/\b(20\d{2})\b/);
+    if (bareMonthYear) {
+      date = `${bareMonthYear[1]} ${bareMonthYear[2]}`;
+      tempStr = tempStr.replace(bareMonthYear[0], "").trim();
+    } else if (bareYear) {
+      date = bareYear[1];
+    }
+  }
+  let title = tempStr.replace(/\s*[-–—:]\s*$/, "").trim();
   return { title, date, url };
 }
 
