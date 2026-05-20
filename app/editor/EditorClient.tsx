@@ -1033,8 +1033,8 @@ export function EditorClient({
           >
             <Trash2 className="w-4 h-4" />
           </button>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
+          <div className="grid grid-cols-3 gap-4">
+            <div className="col-span-3">
               <SectionLabel>Institution</SectionLabel>
               <InlineEdit value={edu.school} onChange={(v) => updateEdu(i, "school", v)} placeholder="University Name" />
             </div>
@@ -1042,37 +1042,35 @@ export function EditorClient({
               <SectionLabel>Degree / Certification</SectionLabel>
               <InlineEdit value={edu.degree} onChange={(v) => updateEdu(i, "degree", v)} placeholder="B.Sc. in Engineering" />
             </div>
-            <div className="col-span-1 grid grid-cols-2 gap-2">
-              <div>
-                 <SectionLabel>Completion</SectionLabel>
-                 <InlineEdit value={edu.year} onChange={(v) => updateEdu(i, "year", v)} placeholder="2024" />
-              </div>
-              <div>
-                 <div className="flex items-center justify-between mb-1.5">
-                   <SectionLabel>GPA / Mark</SectionLabel>
-                   <div className="flex bg-neutral-900 border border-white/5 p-0.5 rounded-md text-[7px] font-black uppercase tracking-wider gap-0.5 select-none">
-                     {(["gpa", "cgpa", "percentage"] as const).map((t) => (
-                       <button
-                         key={t}
-                         type="button"
-                         onClick={() => updateEdu(i, "gpaType" as any, t)}
-                         className={`px-1.5 py-0.5 rounded transition-all cursor-pointer ${
-                           (edu.gpaType || "gpa") === t
-                             ? "bg-blue-600 text-white font-black"
-                             : "text-neutral-500 hover:text-neutral-300"
-                         }`}
-                       >
-                         {t === "percentage" ? "%" : t.toUpperCase()}
-                       </button>
-                     ))}
-                   </div>
+            <div className="col-span-1">
+               <SectionLabel>Completion</SectionLabel>
+               <InlineEdit value={edu.year} onChange={(v) => updateEdu(i, "year", v)} placeholder="2024" />
+            </div>
+            <div className="col-span-1">
+               <div className="flex items-center justify-between mb-1.5">
+                 <SectionLabel>GPA / Mark</SectionLabel>
+                 <div className="flex bg-neutral-900 border border-white/5 p-0.5 rounded-md text-[7px] font-black uppercase tracking-wider gap-0.5 select-none shrink-0">
+                   {(["gpa", "cgpa", "percentage"] as const).map((t) => (
+                     <button
+                       key={t}
+                       type="button"
+                       onClick={() => updateEdu(i, "gpaType" as any, t)}
+                       className={`px-1.5 py-0.5 rounded transition-all cursor-pointer ${
+                         (edu.gpaType || "gpa") === t
+                           ? "bg-blue-600 text-white font-black"
+                           : "text-neutral-500 hover:text-neutral-300"
+                       }`}
+                     >
+                       {t === "percentage" ? "%" : t.toUpperCase()}
+                     </button>
+                   ))}
                  </div>
-                 <InlineEdit 
-                   value={edu.gpa || ""} 
-                   onChange={(v) => updateEdu(i, "gpa", v)} 
-                   placeholder={(edu.gpaType || "gpa") === "percentage" ? "75" : (edu.gpaType || "gpa") === "cgpa" ? "9.2" : "4.0"} 
-                 />
-              </div>
+               </div>
+               <InlineEdit 
+                 value={edu.gpa || ""} 
+                 onChange={(v) => updateEdu(i, "gpa", v)} 
+                 placeholder={(edu.gpaType || "gpa") === "percentage" ? "75" : (edu.gpaType || "gpa") === "cgpa" ? "9.2" : "4.0"} 
+               />
             </div>
           </div>
         </div>
