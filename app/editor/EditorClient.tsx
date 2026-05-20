@@ -402,7 +402,8 @@ export function EditorClient({
   const [experience, setExperience] = useState<CVExperience[]>(() => ensureArray(initialData.experience));
   const [projects, setProjects] = useState<ProjectData[]>(() => ensureArray(initialData.projects));
   const [education, setEducation] = useState<CVEducation[]>(() => ensureArray(initialData.education));
-  const [achievements, setAchievements] = useState<string[]>(() => ensureArray(initialData.achievements || [""]));
+  const [achievements, setAchievements] = useState<string[]>(() => ensureArray(initialData.achievements || [""]));  
+  const [achFetching, setAchFetching] = useState<Record<number, boolean>>({});
   
   // LIVE PROJECTS SYNC: Remove redundant fetch on mount as initialData is already version-specific
   // and fetching from /api/projects would corrupt specialized versions with 'Main' data.
@@ -1145,6 +1146,35 @@ export function EditorClient({
               setAchievements(nu);
             };
 
+            const autoFill = async () => {
+              const url = parsed.url?.trim();
+              if (!url) return;
+              setAchFetching((prev) => ({ ...prev, [idx]: true }));
+              try {
+                const res = await fetch("/api/cv/fetch-credential", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ url }),
+                });
+                if (res.ok) {
+                  const data = await res.json();
+                  const nu = [...achievements];
+                  const current = parseAchievementString(nu[idx]);
+                  const updated = {
+                    title: data.title ? (data.issuer ? `${data.title} – ${data.issuer}` : data.title) : current.title,
+                    date: data.date || current.date,
+                    url: current.url || "",
+                  };
+                  nu[idx] = JSON.stringify(updated);
+                  setAchievements(nu);
+                }
+              } catch (e) {
+                console.error("[auto-fill]", e);
+              } finally {
+                setAchFetching((prev) => ({ ...prev, [idx]: false }));
+              }
+            };
+
             return (
               <div key={idx} className="relative group p-4 bg-[#0d0d0d] rounded-xl border border-white/[0.03] hover:border-white/10 transition-all flex flex-col gap-4">
                 <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
@@ -1209,12 +1239,27 @@ export function EditorClient({
                   </div>
 
                   <div className="col-span-3">
-                    <SectionLabel>Verification Link (URL)</SectionLabel>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <SectionLabel>Verification Link (URL)</SectionLabel>
+                      <button
+                        type="button"
+                        onClick={autoFill}
+                        disabled={!parsed.url?.trim() || achFetching[idx]}
+                        className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border border-blue-500/30 text-blue-400 hover:bg-blue-500/10 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                      >
+                        {achFetching[idx]
+                          ? <><Loader2 className="w-3 h-3 animate-spin" /> Fetching…</>
+                          : <><Sparkles className="w-3 h-3" /> Auto-fill</>}
+                      </button>
+                    </div>
                     <InlineEdit
                       value={parsed.url || ""}
                       onChange={(v) => updatePart("url", v)}
                       placeholder="e.g. credly.com/badges/abc"
                     />
+                    {parsed.url?.trim() && (
+                      <p className="mt-1 text-[10px] text-neutral-600">Paste the link then tap Auto-fill to fetch title &amp; date automatically.</p>
+                    )}
                   </div>
                 </div>
               </div>
