@@ -1,5 +1,5 @@
 import React from "react";
-import { Page, Text, View, Document, StyleSheet } from "@react-pdf/renderer";
+import { Page, Text, View, Document, StyleSheet, Link } from "@react-pdf/renderer";
 import type { CVData, ProjectData } from "@/lib/types";
 import { normalizeAndDedupeSkills, formatLinkedIn, formatGitHub } from "@/lib/skills-data";
 
@@ -216,12 +216,43 @@ export const CVDocument = ({ cv, projects }: { cv: CVData; projects: ProjectData
         <View style={styles.header}>
           <Text style={styles.name}>{cv.name || "Your Name"}</Text>
           <View style={styles.contactRow}>
-            {contactParts.map((part, i) => (
-              <React.Fragment key={i}>
-                {i > 0 && <Text style={styles.contactSep}>•</Text>}
-                <Text style={styles.contactText}>{part}</Text>
-              </React.Fragment>
-            ))}
+            {cv.location ? <Text style={styles.contactText}>{cv.location}</Text> : null}
+            {cv.email ? (
+              <>
+                {cv.location ? <Text style={styles.contactSep}>•</Text> : null}
+                <Link style={{ ...styles.contactText, textDecoration: "underline" }} src={`mailto:${cv.email}`}>
+                  {cv.email}
+                </Link>
+              </>
+            ) : null}
+            {cv.phone ? (
+              <>
+                {(cv.location || cv.email) ? <Text style={styles.contactSep}>•</Text> : null}
+                <Text style={styles.contactText}>{cv.phone}</Text>
+              </>
+            ) : null}
+            {cv.github ? (
+              <>
+                {(cv.location || cv.email || cv.phone) ? <Text style={styles.contactSep}>•</Text> : null}
+                <Link
+                  style={{ ...styles.contactText, textDecoration: "underline" }}
+                  src={cv.github.startsWith("http") ? cv.github : `https://${cv.github}`}
+                >
+                  {formatGitHub(cv.github)}
+                </Link>
+              </>
+            ) : null}
+            {cv.linkedin ? (
+              <>
+                {(cv.location || cv.email || cv.phone || cv.github) ? <Text style={styles.contactSep}>•</Text> : null}
+                <Link
+                  style={{ ...styles.contactText, textDecoration: "underline" }}
+                  src={cv.linkedin.startsWith("http") ? cv.linkedin : `https://${cv.linkedin}`}
+                >
+                  {formatLinkedIn(cv.linkedin)}
+                </Link>
+              </>
+            ) : null}
           </View>
         </View>
 
@@ -291,7 +322,16 @@ export const CVDocument = ({ cv, projects }: { cv: CVData; projects: ProjectData
               return (
                 <View key={idx} style={styles.entry}>
                   <View style={styles.entryHeader}>
-                    <Text style={styles.entryTitleLeft}>{project.title || "Untitled Project"}</Text>
+                    {project.githubUrl || project.liveUrl ? (
+                      <Link
+                        style={{ ...styles.entryTitleLeft, textDecoration: "underline" }}
+                        src={project.githubUrl || project.liveUrl || ""}
+                      >
+                        {project.title || "Untitled Project"}
+                      </Link>
+                    ) : (
+                      <Text style={styles.entryTitleLeft}>{project.title || "Untitled Project"}</Text>
+                    )}
                     {techStr ? <Text style={styles.entryTimeRightItalic}>{techStr}</Text> : null}
                   </View>
                   {project.description && (

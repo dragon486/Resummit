@@ -119,16 +119,45 @@ function FormalTemplate({
           }}
         >
           {data.location && <span>{data.location}</span>}
-          {data.email && <span>• {data.email}</span>}
+          {data.email && (
+            <span>
+              •{" "}
+              <a
+                href={`mailto:${data.email}`}
+                style={{ textDecoration: "underline", color: "#4a5568" }}
+                className="hover:text-blue-600 transition-colors"
+              >
+                {data.email}
+              </a>
+            </span>
+          )}
           {data.phone && <span>• {data.phone}</span>}
           {data.github && (
             <span>
-              • {formatGitHub(data.github)}
+              •{" "}
+              <a
+                href={data.github.startsWith("http") ? data.github : `https://${data.github}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ textDecoration: "underline", color: "#4a5568" }}
+                className="hover:text-blue-600 transition-colors"
+              >
+                {formatGitHub(data.github)}
+              </a>
             </span>
           )}
           {data.linkedin && (
             <span>
-              • {formatLinkedIn(data.linkedin)}
+              •{" "}
+              <a
+                href={data.linkedin.startsWith("http") ? data.linkedin : `https://${data.linkedin}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ textDecoration: "underline", color: "#4a5568" }}
+                className="hover:text-blue-600 transition-colors"
+              >
+                {formatLinkedIn(data.linkedin)}
+              </a>
             </span>
           )}
         </div>
@@ -230,9 +259,21 @@ function FormalTemplate({
                     alignItems: "baseline",
                   }}
                 >
-                  <span style={{ fontSize: "9.5pt", fontWeight: "bold" }}>
-                    {project.title || "Untitled Project"}
-                  </span>
+                  {project.githubUrl || project.liveUrl ? (
+                    <a
+                      href={project.githubUrl || project.liveUrl || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ fontSize: "9.5pt", fontWeight: "bold", textDecoration: "underline", color: "#1a202c" }}
+                      className="hover:text-blue-600 transition-colors"
+                    >
+                      {project.title || "Untitled Project"}
+                    </a>
+                  ) : (
+                    <span style={{ fontSize: "9.5pt", fontWeight: "bold" }}>
+                      {project.title || "Untitled Project"}
+                    </span>
+                  )}
                   <span
                     style={{
                       fontSize: "8pt",
