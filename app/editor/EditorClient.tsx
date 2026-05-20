@@ -50,40 +50,29 @@ function InlineEdit({
 
 function parseAchievementString(str: string) {
   if (!str) return { title: "", date: "", url: "" };
-  if (str.trim().startsWith("{")) {
+  const trimmed = str.trim();
+  if (trimmed.startsWith("{")) {
     try {
-      const parsed = JSON.parse(str);
+      const parsed = JSON.parse(trimmed);
       return {
         title: parsed.title || "",
         date: parsed.date || "",
-        url: parsed.url || "",
+        url: parsed.url ? parsed.url.trim() : "",
       };
     } catch {
-      // ignore
+      // fall through to legacy regex
     }
   }
-  const urlRegex = /(https?:\/\/[^\s]+|(?:credly\.com|coursera\.org|github\.com|linkedin\.com|devpost\.com|credly\.com\/badges)\/[^\s]+)/gi;
-  let url: string | null = null;
+  const urlRegex = /(https?:\/\/[^\s]+|(?:credly\.com|coursera\.org|github\.com|linkedin\.com|devpost\.com)\S+)/gi;
+  let url = "";
   const urlMatch = str.match(urlRegex);
-  if (urlMatch) {
-    url = urlMatch[0];
-  }
-  
+  if (urlMatch) url = urlMatch[0];
   let tempStr = str.replace(urlRegex, "").trim();
-  
   const dateRegex = /\(([^)]*(?:\d{4}|\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b)[^)]*)\)/i;
-  let date: string | null = null;
+  let date = "";
   const dateMatch = tempStr.match(dateRegex);
-  if (dateMatch) {
-    date = dateMatch[1];
-  }
-  
-  let title = tempStr.replace(dateRegex, "").trim();
-  title = title.replace(/\s*[-–—:]\s*verify\s*$/i, "");
-  title = title.replace(/\s*[-–—:]\s*$/, "");
-  title = title.replace(/\s*[-–—:]\s*verify:\s*$/i, "");
-  title = title.trim();
-  
+  if (dateMatch) date = dateMatch[1];
+  let title = tempStr.replace(dateRegex, "").replace(/\s*[-–—:]\s*$/, "").trim();
   return { title, date, url };
 }
 
@@ -1178,16 +1167,48 @@ export function EditorClient({
                     />
                   </div>
                   
-                  <div className="col-span-1">
-                    <SectionLabel>Date / Year</SectionLabel>
-                    <InlineEdit
-                      value={parsed.date || ""}
-                      onChange={(v) => updatePart("date", v)}
-                      placeholder="e.g. 2025"
-                    />
+                  <div className="col-span-3">
+                    <SectionLabel>Month &amp; Year</SectionLabel>
+                    <div className="flex gap-2">
+                      {(() => {
+                        const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+                        const currentYear = new Date().getFullYear();
+                        const YEARS = Array.from({ length: 10 }, (_, i) => (currentYear - i).toString());
+                        const parts = (parsed.date || "").split(" ");
+                        const selMonth = parts.length === 2 ? parts[0] : "";
+                        const selYear  = parts.length === 2 ? parts[1] : parts[0] || "";
+                        const setDate = (m: string, y: string) => {
+                          updatePart("date", m && y ? `${m} ${y}` : y || m);
+                        };
+                        return (
+                          <>
+                            <select
+                              value={selMonth}
+                              onChange={(e) => setDate(e.target.value, selYear)}
+                              className="flex-1 bg-neutral-900/40 border border-white/5 rounded-xl px-3 py-2.5 text-[13px] text-neutral-200 outline-none focus:border-blue-500/40 transition-all"
+                            >
+                              <option value="">Month</option>
+                              {MONTHS.map((m) => (
+                                <option key={m} value={m}>{m}</option>
+                              ))}
+                            </select>
+                            <select
+                              value={selYear}
+                              onChange={(e) => setDate(selMonth, e.target.value)}
+                              className="flex-1 bg-neutral-900/40 border border-white/5 rounded-xl px-3 py-2.5 text-[13px] text-neutral-200 outline-none focus:border-blue-500/40 transition-all"
+                            >
+                              <option value="">Year</option>
+                              {YEARS.map((y) => (
+                                <option key={y} value={y}>{y}</option>
+                              ))}
+                            </select>
+                          </>
+                        );
+                      })()}
+                    </div>
                   </div>
-                  
-                  <div className="col-span-2">
+
+                  <div className="col-span-3">
                     <SectionLabel>Verification Link (URL)</SectionLabel>
                     <InlineEdit
                       value={parsed.url || ""}
@@ -1710,15 +1731,24 @@ export function EditorClient({
         {/* Superior Header */}
         <header className="px-6 py-5 flex items-center justify-between border-b border-white/[0.03] relative bg-[#0a0a0a]">
           <div className="absolute inset-0 bg-blue-600/5 blur-[80px] pointer-events-none" />
-          <div className="flex items-center gap-3 relative">
-             <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(37,99,235,0.3)] transform rotate-3">
-               <Rocket className="w-5 h-5 text-white" />
+          <div className="flex items-center gap-3.5 relative">
+             <div className="relative w-9 h-9 rounded-xl p-[1px] bg-gradient-to-br from-blue-500 to-indigo-500 shadow-[0_0_20px_rgba(37,99,235,0.2)]">
+               <div className="w-full h-full bg-[#0a0a0a]/90 rounded-[11px] flex items-center justify-center">
+                 <Cpu className="w-4 h-4 text-blue-400 animate-pulse" />
+               </div>
              </div>
-            <div className="flex flex-col">
-               <span className="font-black text-lg tracking-tighter font-outfit uppercase leading-none">
-                 RESUMMIT<span className="text-blue-500">AI</span>
+            <div className="flex flex-col justify-center">
+               <span className="font-extrabold text-sm tracking-tight font-outfit uppercase leading-none flex items-center text-white">
+                 RESUMMIT
+                 <span className="text-[9px] font-black uppercase bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-1.5 py-0.5 rounded-md ml-1.5 shadow-[0_2px_8px_rgba(37,99,235,0.3)] tracking-wider">
+                   AI
+                 </span>
                </span>
-               <span className="text-[8px] font-black uppercase tracking-[3px] text-neutral-600 mt-1">Core Engine V2</span>
+               <div className="flex items-center gap-1.5 mt-1.5 relative">
+                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping absolute" style={{ width: '6px', height: '6px' }} />
+                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 relative" />
+                 <span className="text-[8px] font-black uppercase tracking-[2px] text-neutral-500">Core Engine V2</span>
+               </div>
             </div>
           </div>
           <div className="flex items-center gap-3 relative">

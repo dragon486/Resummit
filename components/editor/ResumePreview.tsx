@@ -23,28 +23,33 @@ export function ResumePreview({
 }
 
 function parseAchievementString(str: string) {
-  const urlRegex = /(https?:\/\/[^\s]+|(?:credly\.com|coursera\.org|github\.com|linkedin\.com|devpost\.com|credly\.com\/badges)\/[^\s]+)/gi;
+  if (!str) return { title: "", date: null, url: null };
+  // Handle new structured JSON format from the sidebar editor
+  const trimmed = str.trim();
+  if (trimmed.startsWith("{")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      return {
+        title: parsed.title || "",
+        date: parsed.date || null,
+        url: parsed.url ? parsed.url.trim() : null,
+      };
+    } catch {
+      // fall through to legacy regex
+    }
+  }
+  // Legacy regex fallback for plain-text achievements
+  const urlRegex = /(https?:\/\/[^\s]+|(?:credly\.com|coursera\.org|github\.com|linkedin\.com|devpost\.com)\S+)/gi;
   let url: string | null = null;
   const urlMatch = str.match(urlRegex);
-  if (urlMatch) {
-    url = urlMatch[0];
-  }
-  
+  if (urlMatch) url = urlMatch[0];
   let tempStr = str.replace(urlRegex, "").trim();
-  
   const dateRegex = /\(([^)]*(?:\d{4}|\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b)[^)]*)\)/i;
   let date: string | null = null;
   const dateMatch = tempStr.match(dateRegex);
-  if (dateMatch) {
-    date = dateMatch[1];
-  }
-  
+  if (dateMatch) date = dateMatch[1];
   let title = tempStr.replace(dateRegex, "").trim();
-  title = title.replace(/\s*[-–—:]\s*verify\s*$/i, "");
-  title = title.replace(/\s*[-–—:]\s*$/, "");
-  title = title.replace(/\s*[-–—:]\s*verify:\s*$/i, "");
-  title = title.trim();
-  
+  title = title.replace(/\s*[-–—:]\s*$/, "").trim();
   return { title, date, url };
 }
 
