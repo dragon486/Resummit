@@ -1,54 +1,30 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { GitBranch, Brain, FileDown, KeyRound, Terminal, Cpu, FileCheck } from "lucide-react";
 import { motion } from "framer-motion";
 
 export function LandingClient({ hasSession }: { hasSession?: boolean }) {
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
+
   useEffect(() => {
-    // Theme toggle logic
+    // Theme toggle logic initialization
     const root = document.documentElement;
-    const themeToggle = document.getElementById("themeToggle");
-
-    const savedTheme = localStorage.getItem("resummit-theme");
-    if (savedTheme) {
+    const savedTheme = localStorage.getItem("resummit-theme") as "dark" | "light";
+    if (savedTheme === "light" || savedTheme === "dark") {
+      setTheme(savedTheme);
       root.setAttribute("data-theme", savedTheme);
-      if (themeToggle) {
-        themeToggle.textContent = savedTheme === "dark" ? "🌙" : "☀️";
-      }
-    } else {
-      // Default to dark theme as in user's HTML
-      root.setAttribute("data-theme", "dark");
-      if (themeToggle) {
-        themeToggle.textContent = "🌙";
-      }
-    }
-
-    const handleThemeClick = () => {
-      const current = root.getAttribute("data-theme");
-      const next = current === "dark" ? "light" : "dark";
-
-      root.setAttribute("data-theme", next);
-      localStorage.setItem("resummit-theme", next);
-
-      // Also sync with Sclade global controls if possible
-      localStorage.setItem("sclade-theme", next);
-      if (next === "light") {
+      if (savedTheme === "light") {
         root.classList.remove("dark");
         root.classList.add("light");
       } else {
         root.classList.remove("light");
         root.classList.add("dark");
       }
-
-      if (themeToggle) {
-        themeToggle.textContent = next === "dark" ? "🌙" : "☀️";
-      }
-    };
-
-    if (themeToggle) {
-      themeToggle.addEventListener("click", handleThemeClick);
+    } else {
+      root.setAttribute("data-theme", "dark");
+      root.classList.add("dark");
     }
 
     // Scroll reveal observer
@@ -68,12 +44,25 @@ export function LandingClient({ hasSession }: { hasSession?: boolean }) {
 
     // Cleanup
     return () => {
-      if (themeToggle) {
-        themeToggle.removeEventListener("click", handleThemeClick);
-      }
       observer.disconnect();
     };
   }, []);
+
+  const toggleTheme = () => {
+    const root = document.documentElement;
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    root.setAttribute("data-theme", next);
+    localStorage.setItem("resummit-theme", next);
+    localStorage.setItem("sclade-theme", next);
+    if (next === "light") {
+      root.classList.remove("dark");
+      root.classList.add("light");
+    } else {
+      root.classList.remove("light");
+      root.classList.add("dark");
+    }
+  };
 
   return (
     <>
@@ -99,6 +88,13 @@ export function LandingClient({ hasSession }: { hasSession?: boolean }) {
           --primary: #4f8cff;
           --shadow: rgba(0,0,0,0.4);
           --nav: rgba(6,8,22,0.72);
+          --logo-doc-body: #172554;
+          --logo-doc-fold: #1d4ed8;
+          --logo-doc-lines: #3b82f6;
+          --logo-flag-pole: #60a5fa;
+          --logo-flag-banner: #60a5fa;
+          --logo-text: #ffffff;
+          --logo-tagline: #64748b;
         }
 
         [data-theme="light"] {
@@ -111,6 +107,13 @@ export function LandingClient({ hasSession }: { hasSession?: boolean }) {
           --primary: #2563eb;
           --shadow: rgba(15,23,42,0.08);
           --nav: rgba(255,255,255,0.82);
+          --logo-doc-body: #dbeafe;
+          --logo-doc-fold: #bfdbfe;
+          --logo-doc-lines: #93c5fd;
+          --logo-flag-pole: #2563eb;
+          --logo-flag-banner: #2563eb;
+          --logo-text: #0f172a;
+          --logo-tagline: #64748b;
         }
 
         .landing-body * {
@@ -177,46 +180,6 @@ export function LandingClient({ hasSession }: { hasSession?: boolean }) {
           justify-content: space-between;
         }
 
-        .landing-body .logo {
-          display: flex;
-          align-items: center;
-          gap: 14px;
-          font-weight: 800;
-          font-size: 1.2rem;
-          letter-spacing: -0.04em;
-        }
-
-        .landing-body .logo-icon {
-          width: 42px;
-          height: 42px;
-          border-radius: 14px;
-          background: linear-gradient(135deg, var(--primary), #7c3aed);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          position: relative;
-          overflow: hidden;
-          box-shadow: 0 10px 30px rgba(79, 140, 255, 0.28);
-        }
-
-        .landing-body .logo-icon::before {
-          content: '';
-          position: absolute;
-          width: 120%;
-          height: 120%;
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.35), transparent);
-          transform: rotate(25deg);
-          top: -40%;
-          left: -20%;
-        }
-
-        .landing-body .logo-mark {
-          font-size: 1rem;
-          font-weight: 900;
-          color: white;
-          z-index: 2;
-        }
-
         .landing-body .logo span {
           color: var(--primary);
         }
@@ -243,18 +206,61 @@ export function LandingClient({ hasSession }: { hasSession?: boolean }) {
           gap: 14px;
         }
 
-        .landing-body .theme-toggle {
-          width: 46px;
-          height: 46px;
-          border-radius: 16px;
+        .landing-body .theme-switch {
+          position: relative;
+          width: 58px;
+          height: 32px;
+          border-radius: 9999px;
           border: 1px solid var(--border);
-          background: var(--surface);
-          color: var(--text);
+          background: rgba(0, 0, 0, 0.05);
           cursor: pointer;
-          font-size: 1rem;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 3px;
+          outline: none;
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        [data-theme="dark"] .landing-body .theme-switch {
+          background: rgba(255, 255, 255, 0.05);
+        }
+
+        .landing-body .theme-switch:hover {
+          border-color: var(--primary);
+          box-shadow: 0 0 12px rgba(79, 140, 255, 0.15);
+        }
+
+        .landing-body .theme-switch-indicator {
+          position: absolute;
+          left: 3px;
+          top: 3.5px;
+          width: 23px;
+          height: 23px;
+          border-radius: 50%;
+          background: var(--text);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+          transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s;
+          z-index: 1;
+        }
+
+        .landing-body .theme-switch-icon {
+          width: 24px;
+          height: 24px;
           display: flex;
           align-items: center;
           justify-content: center;
+          z-index: 2;
+          transition: opacity 0.25s ease, color 0.25s ease;
+          color: var(--text);
+        }
+        
+        [data-theme="light"] .landing-body .theme-switch .sun-icon {
+          color: #d97706;
+        }
+        
+        [data-theme="dark"] .landing-body .theme-switch .moon-icon {
+          color: #60a5fa;
         }
 
         .landing-body .primary-btn {
@@ -648,45 +654,88 @@ export function LandingClient({ hasSession }: { hasSession?: boolean }) {
         }
 
         .landing-body footer {
-          padding: 50px 0;
+          padding: 80px 0 40px 0;
+          background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.01) 100%);
           border-top: 1px solid var(--border);
+        }
+
+        [data-theme="dark"] .landing-body footer {
+          background: linear-gradient(180deg, transparent 0%, rgba(15, 23, 42, 0.15) 100%);
         }
 
         .landing-body .footer-grid {
           display: flex;
           justify-content: space-between;
-          gap: 30px;
+          gap: 40px;
           flex-wrap: wrap;
           align-items: flex-start;
+          margin-bottom: 50px;
         }
 
         .landing-body .footer-left p {
-          margin-top: 14px;
+          margin-top: 18px;
           color: var(--muted);
-          max-width: 360px;
+          max-width: 380px;
+          font-size: 0.95rem;
+          line-height: 1.65;
         }
 
         .landing-body .footer-links {
           display: flex;
-          gap: 50px;
+          gap: 80px;
           flex-wrap: wrap;
         }
 
         .landing-body .footer-column h4 {
-          margin-bottom: 14px;
-          font-size: 0.95rem;
+          margin-bottom: 20px;
+          font-size: 0.82rem;
+          text-transform: uppercase;
+          letter-spacing: 0.12em;
+          color: var(--text);
+          font-weight: 700;
         }
 
         .landing-body .footer-column a {
           display: block;
-          margin-bottom: 10px;
+          margin-bottom: 12px;
           color: var(--muted);
           text-decoration: none;
-          transition: 0.3s;
+          font-size: 0.9rem;
+          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .landing-body .footer-column a:hover {
+          color: var(--primary);
+          transform: translateX(4px);
+        }
+
+        .landing-body .footer-bottom {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding-top: 30px;
+          border-top: 1px solid var(--border);
+          flex-wrap: wrap;
+          gap: 20px;
+          font-size: 0.85rem;
+          color: var(--muted);
+        }
+
+        .landing-body .footer-bottom .creator-credit a {
           color: var(--text);
+          text-decoration: none;
+          font-weight: 600;
+          transition: all 0.25s ease;
+          border-bottom: 1px dotted rgba(255, 255, 255, 0.2);
+        }
+
+        [data-theme="light"] .landing-body .footer-bottom .creator-credit a {
+          border-bottom: 1px dotted rgba(0, 0, 0, 0.2);
+        }
+
+        .landing-body .footer-bottom .creator-credit a:hover {
+          color: var(--primary);
+          border-bottom-color: var(--primary);
         }
 
         .landing-body .reveal {
@@ -726,10 +775,17 @@ export function LandingClient({ hasSession }: { hasSession?: boolean }) {
         <nav>
           <div className="container nav-inner">
             <div className="logo">
-              <div className="logo-icon">
-                <div className="logo-mark">R</div>
+              <svg viewBox="0 0 32 32" className="logo-icon-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7 6C7 4.34315 8.34315 3 10 3H19L25 9V26C25 27.6569 23.6569 29 22 29H10C8.34315 29 7 27.6569 7 26V6Z" className="logo-doc-body" />
+                <path d="M19 3V9H25L19 3Z" className="logo-doc-fold" />
+                <path d="M11 13H17M11 17H21M11 21H18M11 25H20" className="logo-doc-lines" strokeWidth="2" strokeLinecap="round" />
+                <path d="M20 8.5L25 3.5" className="logo-flag-pole" strokeWidth="2" strokeLinecap="round" />
+                <path d="M25 3.5L27 6.5L23.5 5.5Z" className="logo-flag-banner" />
+              </svg>
+              <div className="logo-text-group">
+                <div className="logo-wordmark">RESUMMIT</div>
+                <div className="logo-tagline">YOUR COMMITS. YOUR CAREER.</div>
               </div>
-              <div>Resum<span>mit</span></div>
             </div>
 
             <div className="nav-links">
@@ -739,7 +795,27 @@ export function LandingClient({ hasSession }: { hasSession?: boolean }) {
             </div>
 
             <div className="nav-actions" style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-              <button className="theme-toggle" id="themeToggle">🌙</button>
+              <button 
+                className="theme-switch" 
+                onClick={toggleTheme} 
+                aria-label="Toggle theme"
+              >
+                <span 
+                  className="theme-switch-indicator" 
+                  style={{ transform: theme === 'dark' ? 'translateX(24px)' : 'translateX(0px)' }} 
+                />
+                <div className="theme-switch-icon sun-icon" style={{ opacity: theme === 'light' ? 1 : 0.35 }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                    <circle cx="12" cy="12" r="4" />
+                    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+                  </svg>
+                </div>
+                <div className="theme-switch-icon moon-icon" style={{ opacity: theme === 'dark' ? 1 : 0.35 }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+                  </svg>
+                </div>
+              </button>
               {hasSession ? (
                 <>
                   <Link href="/dashboard" className="primary-btn">Go to Dashboard</Link>
@@ -971,8 +1047,7 @@ export function LandingClient({ hasSession }: { hasSession?: boolean }) {
                 Not from templates.
               </h2>
               <p>
-                Resummit turns real engineering work into professional resumes
-                developers can confidently share with recruiters and hiring teams.
+                Resummit turns real engineering work into professional resumes developers can confidently share with recruiters and hiring teams. Designed, developed, and maintained by <strong>Adel Muhammed</strong>.
               </p>
               <div className="contact-links">
                 <a href="mailto:adelmuhammed786@gmail.com">Contact</a>
@@ -988,10 +1063,17 @@ export function LandingClient({ hasSession }: { hasSession?: boolean }) {
           <div className="container footer-grid">
             <div className="footer-left">
               <div className="logo">
-                <div className="logo-icon">
-                  <div className="logo-mark">R</div>
+                <svg viewBox="0 0 32 32" className="logo-icon-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M7 6C7 4.34315 8.34315 3 10 3H19L25 9V26C25 27.6569 23.6569 29 22 29H10C8.34315 29 7 27.6569 7 26V6Z" className="logo-doc-body" />
+                  <path d="M19 3V9H25L19 3Z" className="logo-doc-fold" />
+                  <path d="M11 13H17M11 17H21M11 21H18M11 25H20" className="logo-doc-lines" strokeWidth="2" strokeLinecap="round" />
+                  <path d="M20 8.5L25 3.5" className="logo-flag-pole" strokeWidth="2" strokeLinecap="round" />
+                  <path d="M25 3.5L27 6.5L23.5 5.5Z" className="logo-flag-banner" />
+                </svg>
+                <div className="logo-text-group">
+                  <div className="logo-wordmark">RESUMMIT</div>
+                  <div className="logo-tagline">YOUR COMMITS. YOUR CAREER.</div>
                 </div>
-                <div>Resum<span>mit</span></div>
               </div>
               <p>
                 AI-powered resume intelligence for developers.
@@ -1013,6 +1095,18 @@ export function LandingClient({ hasSession }: { hasSession?: boolean }) {
                 <a href="https://www.linkedin.com/in/adel-muhammed-49136a282/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
                 <a href="mailto:adelmuhammed786@gmail.com">Email</a>
               </div>
+            </div>
+          </div>
+
+          <div className="container footer-bottom">
+            <div>
+              © {new Date().getFullYear()} Resummit. All rights reserved.
+            </div>
+            <div className="creator-credit">
+              Created & Founded by{" "}
+              <a href="https://github.com/dragon486" target="_blank" rel="noopener noreferrer">
+                Adel Muhammed
+              </a>
             </div>
           </div>
         </footer>

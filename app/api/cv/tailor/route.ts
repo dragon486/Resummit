@@ -61,10 +61,11 @@ export async function POST(req: Request) {
         "experience": [ ... ],
         "projects": [ ... ],
         "education": [ ... ],
+        "achievements": [ ... ],
         "atsScore": (estimated score for this JD out of 100)
       }
       
-      Keep the personalInfo, experience, and education mostly the same, but focus on the summary and skills optimization.
+      Keep the personalInfo, experience, education, and achievements mostly the same, but focus on the summary and skills optimization.
     `;
 
     const result = await model.generateContent(prompt);
@@ -91,6 +92,7 @@ export async function POST(req: Request) {
         experience: tailoredData.experience,
         projects: tailoredData.projects,
         education: tailoredData.education,
+        achievements: tailoredData.achievements || (mainVersion.achievements as any) || [],
         atsScore: tailoredData.atsScore || 0,
       }
     });

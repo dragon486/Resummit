@@ -1,6 +1,22 @@
 import { prisma } from "@/lib/server/prisma";
 import { notFound } from "next/navigation";
 import { Download } from "lucide-react";
+import type { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const cv = await prisma.cV.findUnique({ where: { slug: slug } });
+  if (!cv) {
+    return {
+      title: "Resume Not Found | Resummit",
+      description: "The requested professional developer resume could not be found on Resummit.",
+    };
+  }
+  return {
+    title: `${cv.name} — Professional Developer Resume | Resummit`,
+    description: `View ${cv.name}'s verified technical resume. Built from real engineering work and GitHub repositories via Resummit AI — developed by Adel Muhammed.`,
+  };
+}
 
 export default async function PublicCVPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -144,8 +160,9 @@ export default async function PublicCVPage({ params }: { params: Promise<{ slug:
         )}
       </div>
 
-      <footer className="mt-12 text-center text-sm text-neutral-500 print:hidden">
-        Built with Resummit AI
+      <footer className="mt-12 text-center text-xs text-neutral-500 print:hidden flex flex-col items-center gap-1.5">
+        <div>Built with <span className="font-bold text-neutral-700">Resummit AI</span></div>
+        <div className="text-[10px] text-neutral-400">Created by <a href="https://github.com/dragon486" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 hover:underline transition-colors">Adel Muhammed</a></div>
       </footer>
     </div>
   );

@@ -1,4 +1,5 @@
 import "server-only";
+import type { Metadata } from "next";
 import { auth } from "@/auth";
 import { prisma, resolveUserId } from "@/lib/server/prisma";
 import { redirect } from "next/navigation";
@@ -8,6 +9,11 @@ import { SmartUpdateCenter } from "@/components/dashboard/SmartUpdateCenter";
 import { DashboardControls } from "@/components/dashboard/DashboardControls";
 import { Onboarding } from "@/components/onboarding/Onboarding";
 import { EngineeringSignals } from "@/lib/server/githubIntelligence";
+
+export const metadata: Metadata = {
+  title: "Resummit Dashboard — Developer Engineering DNA",
+  description: "View your ATS scores, analyze stack confidence, track technical achievements, and manage your professional developer resume. Built on your real work, not templates.",
+};
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -90,11 +96,18 @@ export default async function DashboardPage() {
       <nav className="relative z-50 border-b border-[var(--sclade-card-border)] bg-[var(--sclade-nav-bg)] backdrop-blur-xl sticky top-0 transition-colors duration-200 px-8 py-5">
         <div className="w-full flex items-center justify-between">
           <div className="flex items-center gap-12">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <Rocket className="w-4 h-4 text-white" />
+            <div className="logo scale-90 origin-left">
+              <svg viewBox="0 0 32 32" className="logo-icon-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7 6C7 4.34315 8.34315 3 10 3H19L25 9V26C25 27.6569 23.6569 29 22 29H10C8.34315 29 7 27.6569 7 26V6Z" className="logo-doc-body" />
+                <path d="M19 3V9H25L19 3Z" className="logo-doc-fold" />
+                <path d="M11 13H17M11 17H21M11 21H18M11 25H20" className="logo-doc-lines" strokeWidth="2" strokeLinecap="round" />
+                <path d="M20 8.5L25 3.5" className="logo-flag-pole" strokeWidth="2" strokeLinecap="round" />
+                <path d="M25 3.5L27 6.5L23.5 5.5Z" className="logo-flag-banner" />
+              </svg>
+              <div className="logo-text-group">
+                <div className="logo-wordmark">RESUMMIT</div>
+                <div className="logo-tagline">YOUR COMMITS. YOUR CAREER.</div>
               </div>
-              <span className="font-bold text-xl tracking-tight uppercase">RESUMMIT</span>
             </div>
             <div className="hidden md:flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest text-[var(--sclade-text-secondary)]">
                <Link href="/dashboard" className="text-[var(--sclade-text-primary)] border-b-2 border-blue-500 pb-1 -mb-[22px]">Dashboard</Link>

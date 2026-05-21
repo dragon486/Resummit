@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import { signIn } from "@/auth";
 import { GitBranch, Sparkles } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Sign In to Resummit — Access Your Engineering Dashboard",
+  description: "Securely log into Resummit, the ultimate GitHub resume intelligence tool developed by Adel Muhammed. Sync your real projects, analyze ATS scores, and generate premium resumes.",
+};
 
 export default function LoginPage() {
   return (
@@ -9,14 +15,22 @@ export default function LoginPage() {
       <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] bg-sky-500/10 blur-[100px] rounded-full pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-md px-6 text-center">
-        {/* Logo Icon */}
-        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-sky-400 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-lg shadow-blue-500/20">
-          <Sparkles className="text-white w-8 h-8" />
+        {/* Logo Icon & Wordmark */}
+        <div className="flex flex-col items-center mb-12 select-none">
+          <div className="logo scale-125">
+            <svg viewBox="0 0 32 32" className="logo-icon-svg !w-12 !h-12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7 6C7 4.34315 8.34315 3 10 3H19L25 9V26C25 27.6569 23.6569 29 22 29H10C8.34315 29 7 27.6569 7 26V6Z" className="logo-doc-body" />
+              <path d="M19 3V9H25L19 3Z" className="logo-doc-fold" />
+              <path d="M11 13H17M11 17H21M11 21H18M11 25H20" className="logo-doc-lines" strokeWidth="2" strokeLinecap="round" />
+              <path d="M20 8.5L25 3.5" className="logo-flag-pole" strokeWidth="2" strokeLinecap="round" />
+              <path d="M25 3.5L27 6.5L23.5 5.5Z" className="logo-flag-banner" />
+            </svg>
+            <div className="logo-text-group">
+              <div className="logo-wordmark !text-2xl text-white">RESUMMIT</div>
+              <div className="logo-tagline !text-[0.65rem] text-neutral-500">YOUR COMMITS. YOUR CAREER.</div>
+            </div>
+          </div>
         </div>
-
-        <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
-          Resummit <span className="text-blue-400">AI</span>
-        </h1>
         <p className="text-neutral-400 text-lg mb-12">
           Transform your GitHub projects into professional, ATS-optimized resume bullets in seconds.
         </p>

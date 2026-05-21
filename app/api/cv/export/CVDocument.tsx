@@ -4,147 +4,219 @@ import type { CVData, ProjectData } from "@/lib/types";
 import { normalizeAndDedupeSkills, formatLinkedIn, formatGitHub } from "@/lib/skills-data";
 
 // Standard Times-Roman styles matching the FormalTemplate in ResumePreview.tsx perfectly
-const styles = StyleSheet.create({
-  page: {
-    flexDirection: "column",
-    fontFamily: "Times-Roman",
-    backgroundColor: "#ffffff",
-    fontSize: 9,
-    color: "#2d3748",
-    paddingHorizontal: 35,
-    paddingVertical: 30,
-  },
-  // ── Header ──
-  header: {
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  name: {
-    fontSize: 22,
-    fontFamily: "Times-Bold",
-    color: "#1a202c",
-    marginBottom: 3,
-  },
-  contactRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    flexWrap: "wrap",
-    fontSize: 8,
-    color: "#4a5568",
-  },
-  contactText: {
-    fontSize: 8,
-    fontFamily: "Times-Roman",
-    color: "#4a5568",
-  },
-  contactSep: {
-    fontSize: 8,
-    color: "#4a5568",
-    marginHorizontal: 4,
-  },
-  // ── Section Container ──
-  section: {
-    marginBottom: 8,
-  },
-  sectionTitle: {
-    fontSize: 9.5,
-    fontFamily: "Times-Bold",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    color: "#1a202c",
-    borderTopWidth: 1.5,
-    borderTopColor: "#1a202c",
-    paddingTop: 3,
-    marginBottom: 4,
-  },
-  // ── Professional Summary ──
-  summaryText: {
-    fontSize: 9,
-    fontFamily: "Times-Roman",
-    lineHeight: 1.4,
-    color: "#2d3748",
-  },
-  // ── Skills ──
-  skillsContainer: {
-    fontSize: 8.5,
-    lineHeight: 1.5,
-  },
-  skillLine: {
-    flexDirection: "row",
-    marginBottom: 1,
-  },
-  skillLabel: {
-    fontFamily: "Times-Bold",
-    color: "#1a202c",
-    marginRight: 4,
-  },
-  skillText: {
-    fontFamily: "Times-Roman",
-    color: "#2d3748",
-  },
-  // ── Generic Entry Row (Experience, Projects, Education) ──
-  entry: {
-    marginBottom: 6,
-  },
-  entryHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "baseline",
-  },
-  entryTitleLeft: {
-    fontSize: 9.5,
-    fontFamily: "Times-Bold",
-    color: "#1a202c",
-    flex: 1,
-  },
-  entryTimeRight: {
-    fontSize: 8.5,
-    fontFamily: "Times-Bold",
-    color: "#1a202c",
-    textAlign: "right",
-    marginLeft: 10,
-  },
-  entryTimeRightItalic: {
-    fontSize: 8,
-    fontFamily: "Times-Italic",
-    color: "#4a5568",
-    textAlign: "right",
-    marginLeft: 10,
-  },
-  entrySubtitle: {
-    fontSize: 9,
-    fontFamily: "Times-Roman",
-    color: "#4a5568",
-    marginBottom: 2,
-  },
-  entryDescriptionItalic: {
-    fontSize: 8.5,
-    fontFamily: "Times-Roman",
-    color: "#2d3748",
-    marginBottom: 2.5,
-  },
-  // ── Bullet Lists ──
-  bulletRow: {
-    flexDirection: "row",
-    marginBottom: 2,
-    paddingLeft: 12,
-  },
-  bulletDot: {
-    width: 3,
-    height: 3,
-    backgroundColor: "#2d3748",
-    borderRadius: 1.5,
-    marginRight: 6,
-    marginTop: 4,
-  },
-  bulletText: {
-    flex: 1,
-    fontSize: 8.5,
-    fontFamily: "Times-Roman",
-    lineHeight: 1.4,
-    color: "#2d3748",
-  },
-});
+const getDynamicStyles = (score: number) => {
+  let fontSizeBody = 8.5;
+  let fontSizeSecTitle = 9.5;
+  let fontSizeSummary = 9;
+  let fontSizeEntryHeader = 9.5;
+  let fontSizeSub = 9;
+  let fontSizePeriod = 8.5;
+  
+  let lineHeightBody = 1.4;
+  let lineHeightSummary = 1.4;
+  let lineHeightSkills = 1.5;
+  
+  let paddingHorizontal = 35; // 12.3mm
+  let paddingVertical = 30; // 10.5mm
+  let marginHeader = 8;
+  let marginSection = 10;
+  let sectionTitlePaddingTop = 3;
+  let sectionTitleMarginBottom = 5;
+  let entryGap = 8;
+  let bulletMarginBottom = 2.5;
+  let skillLineMarginBottom = 1;
+  let fontSizeName = 22;
+
+  if (score > 54) {
+    // Very Dense
+    fontSizeBody = 7.6;
+    fontSizeSecTitle = 8.5;
+    fontSizeSummary = 8;
+    fontSizeEntryHeader = 8.5;
+    fontSizeSub = 8;
+    fontSizePeriod = 7.6;
+    fontSizeName = 18;
+    
+    lineHeightBody = 1.2;
+    lineHeightSummary = 1.2;
+    lineHeightSkills = 1.25;
+    
+    paddingHorizontal = 27; // 9.5mm
+    paddingVertical = 18.5; // 6.5mm
+    marginHeader = 4;
+    marginSection = 4;
+    sectionTitlePaddingTop = 1.5;
+    sectionTitleMarginBottom = 2;
+    entryGap = 3;
+    bulletMarginBottom = 0.5;
+    skillLineMarginBottom = 0.5;
+  } else if (score > 43) {
+    // Dense
+    fontSizeBody = 8;
+    fontSizeSecTitle = 9;
+    fontSizeSummary = 8.5;
+    fontSizeEntryHeader = 9;
+    fontSizeSub = 8.5;
+    fontSizePeriod = 8;
+    fontSizeName = 20;
+    
+    lineHeightBody = 1.3;
+    lineHeightSummary = 1.3;
+    lineHeightSkills = 1.35;
+    
+    paddingHorizontal = 31; // 11mm
+    paddingVertical = 24; // 8.5mm
+    marginHeader = 6;
+    marginSection = 6.5;
+    sectionTitlePaddingTop = 2;
+    sectionTitleMarginBottom = 3;
+    entryGap = 5;
+    bulletMarginBottom = 1;
+    skillLineMarginBottom = 1;
+  }
+
+  return StyleSheet.create({
+    page: {
+      flexDirection: "column",
+      fontFamily: "Times-Roman",
+      backgroundColor: "#ffffff",
+      fontSize: fontSizeBody,
+      color: "#2d3748",
+      paddingHorizontal,
+      paddingVertical,
+    },
+    // ── Header ──
+    header: {
+      textAlign: "center",
+      marginBottom: marginHeader,
+    },
+    name: {
+      fontSize: fontSizeName,
+      fontFamily: "Times-Bold",
+      color: "#1a202c",
+      marginBottom: 3,
+    },
+    contactRow: {
+      flexDirection: "row",
+      justifyContent: "center",
+      flexWrap: "wrap",
+      fontSize: score > 48 ? 7.5 : 8,
+      color: "#4a5568",
+    },
+    contactText: {
+      fontSize: score > 48 ? 7.5 : 8,
+      fontFamily: "Times-Roman",
+      color: "#4a5568",
+    },
+    contactSep: {
+      fontSize: score > 48 ? 7.5 : 8,
+      color: "#4a5568",
+      marginHorizontal: 4,
+    },
+    // ── Section Container ──
+    section: {
+      marginBottom: marginSection,
+    },
+    sectionTitle: {
+      fontSize: fontSizeSecTitle,
+      fontFamily: "Times-Bold",
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+      color: "#1a202c",
+      borderTopWidth: 1.5,
+      borderTopColor: "#1a202c",
+      paddingTop: sectionTitlePaddingTop,
+      marginBottom: sectionTitleMarginBottom,
+    },
+    // ── Professional Summary ──
+    summaryText: {
+      fontSize: fontSizeSummary,
+      fontFamily: "Times-Roman",
+      lineHeight: lineHeightSummary,
+      color: "#2d3748",
+    },
+    // ── Skills ──
+    skillsContainer: {
+      fontSize: fontSizeBody,
+      lineHeight: lineHeightSkills,
+    },
+    skillLine: {
+      flexDirection: "row",
+      marginBottom: skillLineMarginBottom,
+    },
+    skillLabel: {
+      fontFamily: "Times-Bold",
+      color: "#1a202c",
+      marginRight: 4,
+    },
+    skillText: {
+      fontFamily: "Times-Roman",
+      color: "#2d3748",
+    },
+    // ── Generic Entry Row (Experience, Projects, Education) ──
+    entry: {
+      marginBottom: entryGap,
+    },
+    entryHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "baseline",
+    },
+    entryTitleLeft: {
+      fontSize: fontSizeEntryHeader,
+      fontFamily: "Times-Bold",
+      color: "#1a202c",
+      flex: 1,
+    },
+    entryTimeRight: {
+      fontSize: fontSizePeriod,
+      fontFamily: "Times-Bold",
+      color: "#1a202c",
+      textAlign: "right",
+      marginLeft: 10,
+    },
+    entryTimeRightItalic: {
+      fontSize: score > 48 ? 7.5 : 8,
+      fontFamily: "Times-Italic",
+      color: "#4a5568",
+      textAlign: "right",
+      marginLeft: 10,
+    },
+    entrySubtitle: {
+      fontSize: fontSizeSub,
+      fontFamily: "Times-Roman",
+      color: "#4a5568",
+      marginBottom: score > 35 ? 1 : 3,
+    },
+    entryDescriptionItalic: {
+      fontSize: fontSizeBody,
+      fontFamily: "Times-Roman",
+      color: "#2d3748",
+      marginBottom: score > 35 ? 1 : 3,
+    },
+    // ── Bullet Lists ──
+    bulletRow: {
+      flexDirection: "row",
+      marginBottom: bulletMarginBottom,
+      paddingLeft: 12,
+    },
+    bulletDot: {
+      width: 3,
+      height: 3,
+      backgroundColor: "#2d3748",
+      borderRadius: 1.5,
+      marginRight: 6,
+      marginTop: 4,
+    },
+    bulletText: {
+      flex: 1,
+      fontSize: fontSizeBody,
+      fontFamily: "Times-Roman",
+      lineHeight: lineHeightBody,
+      color: "#2d3748",
+    },
+  });
+};
 
 function parseAchievementString(str: string) {
   if (!str) return { title: "", date: null, url: null };
@@ -223,7 +295,7 @@ const parseAndRenderPdfText = (text: string) => {
 };
 
 // Render bullets using simple bullet design matching standard HTML list styling
-const BulletList = ({ bullets }: { bullets: string[] }) => (
+const BulletList = ({ bullets, styles }: { bullets: string[]; styles: any }) => (
   <View>
     {bullets.map((b, i) => (
       <View key={i} style={styles.bulletRow}>
@@ -283,6 +355,19 @@ export const CVDocument = ({ cv, projects }: { cv: CVData; projects: ProjectData
       displaySummary = parsed.summary || parsed.Summary || (Object.values(parsed)[0] as string);
     } catch { /* ignore */ }
   }
+
+  // Calculate dynamic density score for PDF scaling matching ResumePreview
+  const expCount = cleanExperience.length;
+  const expBullets = cleanExperience.reduce((sum: number, e: any) => sum + (e.bullets?.length || 0), 0);
+  const projCount = includedProjects.length;
+  const projBullets = includedProjects.reduce((sum: number, p: any) => sum + (p.highlights?.length || 0), 0);
+  const eduCount = (education || []).length;
+  const achCount = (cv.achievements || []).filter((a: string) => a.trim()).slice(0, 4).length;
+  const summaryLength = displaySummary ? displaySummary.length : 0;
+
+  const score = expCount * 3 + expBullets * 1 + projCount * 3 + projBullets * 1 + eduCount * 2 + achCount * 1.5 + (summaryLength > 200 ? Math.ceil(summaryLength / 80) : 2);
+
+  const styles = getDynamicStyles(score);
 
   return (
     <Document>
@@ -378,7 +463,7 @@ export const CVDocument = ({ cv, projects }: { cv: CVData; projects: ProjectData
                   <Text style={styles.entryTimeRight}>{exp.period}</Text>
                 </View>
                 <Text style={styles.entrySubtitle}>{exp.company}</Text>
-                {exp.bullets?.length > 0 && <BulletList bullets={exp.bullets} />}
+                {exp.bullets?.length > 0 && <BulletList bullets={exp.bullets} styles={styles} />}
               </View>
             ))}
           </View>
@@ -413,7 +498,7 @@ export const CVDocument = ({ cv, projects }: { cv: CVData; projects: ProjectData
                   {project.description && (
                     <Text style={styles.entryDescriptionItalic}>{project.description}</Text>
                   )}
-                  {project.highlights?.length > 0 && <BulletList bullets={project.highlights} />}
+                  {project.highlights?.length > 0 && <BulletList bullets={project.highlights} styles={styles} />}
                 </View>
               );
             })}
@@ -456,11 +541,12 @@ export const CVDocument = ({ cv, projects }: { cv: CVData; projects: ProjectData
             <Text style={styles.sectionTitle}>Achievements &amp; Certifications</Text>
             {cv.achievements
               .filter((a: string) => a.trim())
+              .slice(0, 4)
               .map((ach: string, idx: number) => {
                 const { title, date, url } = parseAchievementString(ach);
                 const href = url ? (url.startsWith("http") ? url : `https://${url}`) : null;
                 return (
-                  <View key={idx} style={{ flexDirection: "row", marginBottom: 2.5, paddingLeft: 12, alignItems: "baseline" }}>
+                  <View key={idx} style={{ flexDirection: "row", marginBottom: 3.5, paddingLeft: 12, alignItems: "baseline" }}>
                     <View style={[styles.bulletDot, { marginTop: 3.5 }]} />
                     <View style={{ flex: 1, flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
                       <Text style={[styles.bulletText, { flex: 1 }]}>

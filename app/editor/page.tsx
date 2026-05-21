@@ -1,9 +1,15 @@
 import "server-only";
 export const dynamic = "force-dynamic";
+import type { Metadata } from "next";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/server/prisma";
 import { redirect } from "next/navigation";
 import { EditorClient } from "./EditorClient";
+
+export const metadata: Metadata = {
+  title: "Resummit OS Editor — Premium Developer Resume Suite",
+  description: "Craft, tailor, and refine your software engineer resume with the Resummit OS Editor by Adel Muhammed. Real engineering work, single-page hard limit safeguards, and real-time ATS optimization.",
+};
 
 export default async function EditorPage() {
   const session = await auth();

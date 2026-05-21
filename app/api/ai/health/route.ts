@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server'
+import { auth } from '@/auth'
 
 export async function GET() {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const geminiKey = process.env.GEMINI_API_KEY
   const hasGeminiKey = !!(geminiKey && geminiKey.length > 10)
   

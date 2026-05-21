@@ -89,3 +89,85 @@ body {
 .print-only {
   display: none;
 }
+
+/* Custom Global Logo & Branding Colors */
+:root, .light {
+  --logo-doc-body: #dbeafe;
+  --logo-doc-fold: #bfdbfe;
+  --logo-doc-lines: #93c5fd;
+  --logo-flag-pole: #2563eb;
+  --logo-flag-banner: #2563eb;
+  --logo-text: #0f172a;
+  --logo-tagline: #64748b;
+}
+
+.dark {
+  --logo-doc-body: #172554; /* slate/blue dark */
+  --logo-doc-fold: #1d4ed8;
+  --logo-doc-lines: #3b82f6;
+  --logo-flag-pole: #60a5fa;
+  --logo-flag-banner: #60a5fa;
+  --logo-text: #ffffff;
+  --logo-tagline: #64748b;
+}
+
+/* Global Logo SVG Components */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.logo-icon-svg {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+}
+
+.logo-text-group {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  text-align: left;
+}
+
+.logo-wordmark {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--logo-text);
+  text-transform: uppercase;
+}
+
+.logo-tagline {
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: var(--logo-tagline);
+  text-transform: uppercase;
+  margin-top: 2px;
+  font-family: monospace, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+}
+
+.logo-doc-body {
+  fill: var(--logo-doc-body);
+  transition: fill 0.35s cubic-bezier(.22,.61,.36,1);
+}
+.logo-doc-fold {
+  fill: var(--logo-doc-fold);
+  transition: fill 0.35s cubic-bezier(.22,.61,.36,1);
+}
+.logo-doc-lines {
+  stroke: var(--logo-doc-lines);
+  transition: stroke 0.35s cubic-bezier(.22,.61,.36,1);
+}
+.logo-flag-pole {
+  stroke: var(--logo-flag-pole);
+  transition: stroke 0.35s cubic-bezier(.22,.61,.36,1);
+}
+.logo-flag-banner {
+  fill: var(--logo-flag-banner);
+  transition: fill 0.35s cubic-bezier(.22,.61,.36,1);
+}

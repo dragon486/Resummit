@@ -153,28 +153,97 @@ function FormalTemplate({
       highlights: (p.highlights || []).filter((h) => h.trim()).slice(0, 2),
     }));
 
-  // Always compact — user has a full CV (3 jobs, 3 projects, 5+ certs, education)
-  const dense = true;
-  const secTitle = "text-[9pt]";
-  const bodyText = "text-[7.8pt]";
-  const secGap = "mb-1";
-  const itemGap = "space-y-1";
+  // Calculate content density score to dynamically scale styling for single-page enforcement
+  const expCount = cleanExperience.length;
+  const expBullets = cleanExperience.reduce((sum, e) => sum + (e.bullets?.length || 0), 0);
+  const projCount = includedProjects.length;
+  const projBullets = includedProjects.reduce((sum, p) => sum + (p.highlights?.length || 0), 0);
+  const eduCount = data.education.length;
+  const achCount = (data.achievements || []).filter((a) => a.trim()).slice(0, 4).length;
+  const summaryLength = displaySummary ? displaySummary.length : 0;
+
+  const score = expCount * 3 + expBullets * 1 + projCount * 3 + projBullets * 1 + eduCount * 2 + achCount * 1.5 + (summaryLength > 200 ? Math.ceil(summaryLength / 80) : 2);
+
+  // Dynamic style scaling variables
+  let fontSizeBody = "8.5pt";
+  let fontSizeSecTitle = "9.5pt";
+  let fontSizeSummary = "9pt";
+  let fontSizeEntryHeader = "9.5pt";
+  let fontSizeSub = "9pt";
+  let fontSizePeriod = "8.5pt";
+  
+  let lineHeightBody = 1.4;
+  let lineHeightSummary = 1.4;
+  let lineHeightSkills = 1.5;
+  
+  let paddingPage = "10.5mm 12.3mm";
+  let marginHeader = "8px";
+  let marginSection = "10px";
+  let sectionTitlePaddingTop = "3px";
+  let sectionTitleMarginBottom = "5px";
+  let entryGap = "8px";
+  let bulletMarginBottom = "2px";
+  let skillLineMarginBottom = "1px";
+
+  if (score > 54) {
+    // Very Dense
+    fontSizeBody = "7.6pt";
+    fontSizeSecTitle = "8.5pt";
+    fontSizeSummary = "8pt";
+    fontSizeEntryHeader = "8.5pt";
+    fontSizeSub = "8pt";
+    fontSizePeriod = "7.6pt";
+    
+    lineHeightBody = 1.2;
+    lineHeightSummary = 1.2;
+    lineHeightSkills = 1.25;
+    
+    paddingPage = "6.5mm 9.5mm";
+    marginHeader = "4px";
+    marginSection = "4px";
+    sectionTitlePaddingTop = "1.5px";
+    sectionTitleMarginBottom = "2px";
+    entryGap = "3px";
+    bulletMarginBottom = "0.5px";
+    skillLineMarginBottom = "0.5px";
+  } else if (score > 43) {
+    // Dense
+    fontSizeBody = "8pt";
+    fontSizeSecTitle = "9pt";
+    fontSizeSummary = "8.5pt";
+    fontSizeEntryHeader = "9pt";
+    fontSizeSub = "8.5pt";
+    fontSizePeriod = "8pt";
+    
+    lineHeightBody = 1.3;
+    lineHeightSummary = 1.3;
+    lineHeightSkills = 1.35;
+    
+    paddingPage = "8.5mm 11mm";
+    marginHeader = "6px";
+    marginSection = "6.5px";
+    sectionTitlePaddingTop = "2px";
+    sectionTitleMarginBottom = "3px";
+    entryGap = "5px";
+    bulletMarginBottom = "1px";
+    skillLineMarginBottom = "1px";
+  }
 
   return (
     <div
-      className="bg-white text-black w-[210mm] h-[297mm] shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden relative"
+      className="bg-white text-black w-[210mm] min-h-[297mm] shadow-[0_0_50px_rgba(0,0,0,0.5)] relative"
       id="printable-resume"
       style={{
         fontFamily: "'Times New Roman', Times, serif",
-        padding: "6mm 9mm",
+        padding: paddingPage,
         boxSizing: "border-box",
       }}
     >
       {/* ── Header ── */}
-      <header style={{ textAlign: "center", marginBottom: "3px" }}>
+      <header style={{ textAlign: "center", marginBottom: marginHeader }}>
         <div
           style={{
-            fontSize: "18pt",
+            fontSize: score > 48 ? "18pt" : (score > 35 ? "20pt" : "22pt"),
             fontWeight: "bold",
             color: "#1a202c",
             lineHeight: 1.1,
@@ -185,7 +254,7 @@ function FormalTemplate({
         </div>
         <div
           style={{
-            fontSize: "8pt",
+            fontSize: score > 48 ? "7.5pt" : "8pt",
             color: "#4a5568",
             marginTop: "3px",
             display: "flex",
@@ -240,40 +309,63 @@ function FormalTemplate({
         </div>
       </header>
 
-      {/* ── Section renderer helper ── */}
       {/* Professional Summary */}
-      <Section title={mode === "specialized" ? "Technical Summary" : "Professional Summary"}>
-        <p style={{ fontSize: "7.8pt", lineHeight: 1.35, color: "#2d3748" }}>
-          {displaySummary ||
-            "Software engineer building impactful products. Experienced in modern web and cloud technologies."}
-        </p>
-      </Section>
+      {displaySummary && (
+        <Section 
+          title={mode === "specialized" ? "Technical Summary" : "Professional Summary"}
+          marginSection={marginSection}
+          fontSizeSecTitle={fontSizeSecTitle}
+          sectionTitlePaddingTop={sectionTitlePaddingTop}
+          sectionTitleMarginBottom={sectionTitleMarginBottom}
+        >
+          <p style={{ fontSize: fontSizeSummary, lineHeight: lineHeightSummary, color: "#2d3748" }}>
+            {displaySummary}
+          </p>
+        </Section>
+      )}
 
       {/* Expert-Level Skills */}
-      <Section title={mode === "specialized" ? "Technical Skills" : "Expert-Level Skills"}>
-        <div style={{ fontSize: "7.8pt", lineHeight: 1.35 }}>
-          {(displaySkills.languages || []).length > 0 && (
-            <div>
-              <b>Languages:</b> {displaySkills.languages.join(", ")}
-            </div>
-          )}
-          {(displaySkills.frameworks || []).length > 0 && (
-            <div>
-              <b>Frameworks:</b> {displaySkills.frameworks.join(", ")}
-            </div>
-          )}
-          {(displaySkills.tools || []).length > 0 && (
-            <div>
-              <b>Tools &amp; Cloud:</b> {displaySkills.tools.join(", ")}
-            </div>
-          )}
-        </div>
-      </Section>
+      {((displaySkills.languages || []).length > 0 || (displaySkills.frameworks || []).length > 0 || (displaySkills.tools || []).length > 0) && (
+        <Section 
+          title={mode === "specialized" ? "Technical Skills" : "Expert-Level Skills"}
+          marginSection={marginSection}
+          fontSizeSecTitle={fontSizeSecTitle}
+          sectionTitlePaddingTop={sectionTitlePaddingTop}
+          sectionTitleMarginBottom={sectionTitleMarginBottom}
+        >
+          <div style={{ fontSize: fontSizeBody, lineHeight: lineHeightSkills }}>
+            {(displaySkills.languages || []).length > 0 && (
+              <div style={{ display: "flex", flexDirection: "row", marginBottom: skillLineMarginBottom }}>
+                <span style={{ fontWeight: "bold", color: "#1a202c", marginRight: "4px" }}>Languages:</span>
+                <span style={{ color: "#2d3748" }}>{displaySkills.languages.join(", ")}</span>
+              </div>
+            )}
+            {(displaySkills.frameworks || []).length > 0 && (
+              <div style={{ display: "flex", flexDirection: "row", marginBottom: skillLineMarginBottom }}>
+                <span style={{ fontWeight: "bold", color: "#1a202c", marginRight: "4px" }}>Frameworks:</span>
+                <span style={{ color: "#2d3748" }}>{displaySkills.frameworks.join(", ")}</span>
+              </div>
+            )}
+            {(displaySkills.tools || []).length > 0 && (
+              <div style={{ display: "flex", flexDirection: "row", marginBottom: skillLineMarginBottom }}>
+                <span style={{ fontWeight: "bold", color: "#1a202c", marginRight: "4px" }}>Tools &amp; Cloud:</span>
+                <span style={{ color: "#2d3748" }}>{displaySkills.tools.join(", ")}</span>
+              </div>
+            )}
+          </div>
+        </Section>
+      )}
 
       {/* Professional Experience */}
       {cleanExperience.length > 0 && (
-        <Section title="Professional Experience">
-          <div style={{ display: "flex", flexDirection: "column", gap: dense ? "7px" : "10px" }}>
+        <Section 
+          title="Professional Experience"
+          marginSection={marginSection}
+          fontSizeSecTitle={fontSizeSecTitle}
+          sectionTitlePaddingTop={sectionTitlePaddingTop}
+          sectionTitleMarginBottom={sectionTitleMarginBottom}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: entryGap }}>
             {cleanExperience.map((exp, idx) => (
               <div key={idx}>
                 <div
@@ -283,14 +375,14 @@ function FormalTemplate({
                     alignItems: "baseline",
                   }}
                 >
-                  <span style={{ fontSize: "9.5pt", fontWeight: "bold" }}>
+                  <span style={{ fontSize: fontSizeEntryHeader, fontWeight: "bold", color: "#1a202c" }}>
                     {exp.title}
                   </span>
-                  <span style={{ fontSize: "8.5pt", fontWeight: "bold", whiteSpace: "nowrap", marginLeft: "8px" }}>
+                  <span style={{ fontSize: fontSizePeriod, fontWeight: "bold", color: "#1a202c", whiteSpace: "nowrap", marginLeft: "8px" }}>
                     {exp.period}
                   </span>
                 </div>
-                <div style={{ fontSize: "9pt", color: "#4a5568", marginBottom: "2px" }}>
+                <div style={{ fontSize: fontSizeSub, color: "#4a5568", marginBottom: score > 35 ? "1px" : "3px" }}>
                   {exp.company}
                 </div>
                 {exp.bullets.length > 0 && (
@@ -305,10 +397,10 @@ function FormalTemplate({
                       <li
                         key={bIdx}
                         style={{
-                          fontSize: "8.5pt",
-                          lineHeight: 1.45,
+                          fontSize: fontSizeBody,
+                          lineHeight: lineHeightBody,
                           color: "#2d3748",
-                          marginBottom: "1px",
+                          marginBottom: bulletMarginBottom,
                           wordBreak: "break-word",
                         }}
                       >
@@ -325,8 +417,14 @@ function FormalTemplate({
 
       {/* Technical Projects */}
       {includedProjects.length > 0 && (
-        <Section title="Technical Projects">
-          <div style={{ display: "flex", flexDirection: "column", gap: dense ? "7px" : "10px" }}>
+        <Section 
+          title="Technical Projects"
+          marginSection={marginSection}
+          fontSizeSecTitle={fontSizeSecTitle}
+          sectionTitlePaddingTop={sectionTitlePaddingTop}
+          sectionTitleMarginBottom={sectionTitleMarginBottom}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: entryGap }}>
             {includedProjects.map((project, idx) => (
               <div key={idx}>
                 <div
@@ -341,19 +439,19 @@ function FormalTemplate({
                       href={project.githubUrl || project.liveUrl || "#"}
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ fontSize: "9.5pt", fontWeight: "bold", textDecoration: "underline", color: "#1a202c" }}
+                      style={{ fontSize: fontSizeEntryHeader, fontWeight: "bold", textDecoration: "underline", color: "#1a202c" }}
                       className="hover:text-blue-600 transition-colors"
                     >
                       {project.title || "Untitled Project"}
                     </a>
                   ) : (
-                    <span style={{ fontSize: "9.5pt", fontWeight: "bold" }}>
+                    <span style={{ fontSize: fontSizeEntryHeader, fontWeight: "bold", color: "#1a202c" }}>
                       {project.title || "Untitled Project"}
                     </span>
                   )}
                   <span
                     style={{
-                      fontSize: "8pt",
+                      fontSize: score > 48 ? "7.5pt" : "8pt",
                       fontStyle: "italic",
                       color: "#4a5568",
                       whiteSpace: "nowrap",
@@ -370,10 +468,10 @@ function FormalTemplate({
                 {project.description && (
                   <div
                     style={{
-                      fontSize: "8.5pt",
+                      fontSize: fontSizeBody,
                       color: "#2d3748",
-                      marginBottom: "2.5px",
-                      marginTop: "1.5px",
+                      marginBottom: score > 35 ? "1px" : "3px",
+                      marginTop: "2px",
                     }}
                   >
                     {project.description}
@@ -391,10 +489,10 @@ function FormalTemplate({
                       <li
                         key={bIdx}
                         style={{
-                          fontSize: "8.5pt",
-                          lineHeight: 1.45,
+                          fontSize: fontSizeBody,
+                          lineHeight: lineHeightBody,
                           color: "#2d3748",
-                          marginBottom: "1px",
+                          marginBottom: bulletMarginBottom,
                           wordBreak: "break-word",
                         }}
                       >
@@ -411,8 +509,14 @@ function FormalTemplate({
 
       {/* Education */}
       {data.education.length > 0 && (
-        <Section title="Education">
-          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+        <Section 
+          title="Education"
+          marginSection={marginSection}
+          fontSizeSecTitle={fontSizeSecTitle}
+          sectionTitlePaddingTop={sectionTitlePaddingTop}
+          sectionTitleMarginBottom={sectionTitleMarginBottom}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: entryGap }}>
             {data.education.map((edu, idx) => (
               <div key={idx}>
                 <div
@@ -422,10 +526,10 @@ function FormalTemplate({
                     alignItems: "baseline",
                   }}
                 >
-                  <span style={{ fontSize: "9.5pt", fontWeight: "bold" }}>
+                  <span style={{ fontSize: fontSizeEntryHeader, fontWeight: "bold", color: "#1a202c" }}>
                     {edu.degree}
                   </span>
-                  <span style={{ fontSize: "8.5pt", fontWeight: "bold" }}>
+                  <span style={{ fontSize: fontSizePeriod, fontWeight: "bold", color: "#1a202c" }}>
                     {edu.current 
                       ? (edu.year && edu.year.toLowerCase().includes("expected")
                         ? edu.year
@@ -433,7 +537,7 @@ function FormalTemplate({
                       : edu.year}
                   </span>
                 </div>
-                <div style={{ fontSize: "8.5pt", color: "#4a5568" }}>
+                <div style={{ fontSize: fontSizeSub, color: "#4a5568" }}>
                   {edu.school}
                   {edu.gpa && (
                     ` • ${
@@ -454,18 +558,25 @@ function FormalTemplate({
       {/* Achievements */}
       {data.achievements &&
         data.achievements.some((a) => a.trim()) && (
-          <Section title="Achievements &amp; Certifications">
-            <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
+          <Section 
+            title="Achievements &amp; Certifications"
+            marginSection={marginSection}
+            fontSizeSecTitle={fontSizeSecTitle}
+            sectionTitlePaddingTop={sectionTitlePaddingTop}
+            sectionTitleMarginBottom={sectionTitleMarginBottom}
+          >
+            <div style={{ display: "flex", flexDirection: "column", gap: bulletMarginBottom }}>
               {data.achievements
                 .filter((a) => a.trim())
+                .slice(0, 4)
                 .map((ach, idx) => {
                   const { title, date, url } = parseAchievementString(ach);
                   const href = url ? (url.startsWith("http") ? url : `https://${url}`) : null;
                   return (
                     <div key={idx} style={{ display: "flex", alignItems: "baseline" }}>
-                      <span style={{ fontSize: "8.5pt", marginRight: "6px", color: "#2d3748" }}>•</span>
+                      <span style={{ fontSize: fontSizeBody, marginRight: "6px", color: "#2d3748" }}>•</span>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flex: 1 }}>
-                        <span style={{ fontSize: "8.5pt", color: "#2d3748" }}>
+                        <span style={{ fontSize: fontSizeBody, color: "#2d3748" }}>
                           {title}
                           {href && (
                             <>
@@ -483,7 +594,7 @@ function FormalTemplate({
                           )}
                         </span>
                         {date && (
-                          <span style={{ fontSize: "7.8pt", fontWeight: "bold", color: "#1a202c", whiteSpace: "nowrap", marginLeft: "6px" }}>
+                          <span style={{ fontSize: fontSizeBody, fontWeight: "bold", color: "#1a202c", whiteSpace: "nowrap", marginLeft: "10px" }}>
                             {date}
                           </span>
                         )}
@@ -502,21 +613,29 @@ function FormalTemplate({
 function Section({
   title,
   children,
+  marginSection = "10px",
+  fontSizeSecTitle = "9.5pt",
+  sectionTitlePaddingTop = "3px",
+  sectionTitleMarginBottom = "5px",
 }: {
   title: string;
   children: React.ReactNode;
+  marginSection?: string;
+  fontSizeSecTitle?: string;
+  sectionTitlePaddingTop?: string;
+  sectionTitleMarginBottom?: string;
 }) {
   return (
-    <div style={{ marginBottom: "4px" }}>
+    <div style={{ marginBottom: marginSection }}>
       <div
         style={{
-          fontSize: "8.5pt",
+          fontSize: fontSizeSecTitle,
           fontWeight: "bold",
           textTransform: "uppercase",
           letterSpacing: "0.05em",
           borderTop: "1.5px solid #1a202c",
-          paddingTop: "2px",
-          marginBottom: "3px",
+          paddingTop: sectionTitlePaddingTop,
+          marginBottom: sectionTitleMarginBottom,
         }}
       >
         {title}

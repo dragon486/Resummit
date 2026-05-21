@@ -45,6 +45,7 @@ model ResumeVersion {
   experience   Json      @default("[]")
   projects     Json      @default("[]")
   education    Json      @default("[]")
+  achievements Json      @default("[]")
   
   // Metadata
   atsScore     Int       @default(0)

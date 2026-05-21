@@ -44,6 +44,7 @@ export async function GET(req: Request) {
     const experience: any = version.experience || [];
     const education: any = version.education || [];
     const projects: any = version.projects || [];
+    const achievements: any = version.achievements || [];
 
     const cvText = `
 Name: ${personalInfo.name || "Anonymous"}
@@ -63,6 +64,9 @@ ${education.map((e: any) => `${e.school || 'School'} (${e.degree || 'Degree'}): 
 
 Projects:
 ${projects.map((p: any) => `${p.title || p.name || 'Untitled'} (${p.techStack || 'Unspecified'})\n- ${(p.highlights || p.bullets || []).join("\n- ")}`).join("\n\n")}
+
+Achievements:
+${achievements.filter((a: string) => a.trim()).map((ach: string) => `- ${ach}`).join("\n")}
     `;
 
     const payload = { 

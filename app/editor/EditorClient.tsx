@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import { Download, Plus, Trash2, RotateCcw, Link as LinkIcon, CheckCircle2, Activity, Eye, Sparkles, Target, X, Loader2, User, Briefcase, Code2, GraduationCap, Zap, AlertTriangle, ChevronDown, ChevronUp, Save, Wifi, WifiOff, ArrowUp, ArrowDown, ExternalLink, Rocket, Cpu, Code, Terminal, GitBranch, Lock } from "lucide-react";
+import { Download, Plus, Trash2, RotateCcw, Link as LinkIcon, CheckCircle2, Activity, Eye, Sparkles, Target, X, Loader2, User, Briefcase, Code2, GraduationCap, Zap, AlertTriangle, ChevronDown, ChevronUp, Save, Wifi, WifiOff, ArrowUp, ArrowDown, ExternalLink, Rocket, Cpu, Code, Terminal, GitBranch, Lock, Sun, Moon } from "lucide-react";
 import type { CVData, ProjectData, CVSkills, CVExperience, CVEducation, SaveStatus, EditorTab } from "@/lib/types";
 import { ResumePreview } from "@/components/editor/ResumePreview";
 import { normalizeAndDedupeSkills } from "@/lib/skills-data";
@@ -33,7 +33,7 @@ function InlineEdit({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         rows={rows}
-        className={`w-full bg-neutral-900/40 border border-white/5 rounded-xl px-4 py-3 text-[13px] text-neutral-200 placeholder:text-neutral-700 outline-none focus:border-blue-500/40 focus:ring-4 focus:ring-blue-500/5 transition-all resize-none leading-relaxed font-medium ${className}`}
+        className={`w-full bg-[var(--sclade-input-bg)] border border-[var(--sclade-input-border)] rounded-xl px-4 py-3 text-[13px] text-[var(--sclade-text-primary)] placeholder:text-[var(--sclade-text-muted)] outline-none focus:border-blue-500/40 focus:ring-4 focus:ring-blue-500/5 transition-all resize-none leading-relaxed font-medium ${className}`}
       />
     );
   }
@@ -43,7 +43,7 @@ function InlineEdit({
       value={value || ""}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className={`w-full bg-neutral-900/40 border border-white/5 rounded-xl px-4 py-2.5 text-[13px] text-neutral-200 placeholder:text-neutral-700 outline-none focus:border-blue-500/40 focus:ring-4 focus:ring-blue-500/5 transition-all font-medium ${className}`}
+      className={`w-full bg-[var(--sclade-input-bg)] border border-[var(--sclade-input-border)] rounded-xl px-4 py-2.5 text-[13px] text-[var(--sclade-text-primary)] placeholder:text-[var(--sclade-text-muted)] outline-none focus:border-blue-500/40 focus:ring-4 focus:ring-blue-500/5 transition-all font-medium ${className}`}
     />
   );
 }
@@ -191,7 +191,7 @@ function ExperienceDatePicker({
   };
 
   return (
-    <div className="space-y-2 bg-neutral-950/40 border border-white/5 rounded-xl p-2.5">
+    <div className="space-y-2 bg-[var(--sclade-input-bg)] border border-[var(--sclade-input-border)] rounded-xl p-2.5">
       {/* Start Date Row */}
       <div className="flex items-center justify-between gap-2">
         <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500 w-10 shrink-0">Start</span>
@@ -199,19 +199,19 @@ function ExperienceDatePicker({
           <select
             value={startMonth}
             onChange={(e) => update({ startMonth: e.target.value })}
-            className="w-full bg-neutral-900/40 border border-white/5 rounded-lg px-2 py-1.5 text-[11px] text-neutral-200 outline-none focus:border-blue-500/40 transition-all font-semibold cursor-pointer text-center"
+            className="w-full bg-[var(--sclade-input-bg)] border border-[var(--sclade-input-border)] rounded-lg px-2 py-1.5 text-[11px] text-[var(--sclade-text-primary)] outline-none focus:border-blue-500/40 transition-all font-semibold cursor-pointer text-center"
           >
             {MONTHS.map((m) => (
-              <option key={m} value={m} className="bg-neutral-950 text-neutral-200">{m}</option>
+              <option key={m} value={m} className="bg-[var(--sclade-popover-bg)] text-[var(--sclade-text-primary)]">{m}</option>
             ))}
           </select>
           <select
             value={startYear}
             onChange={(e) => update({ startYear: e.target.value })}
-            className="w-full bg-neutral-900/40 border border-white/5 rounded-lg px-2 py-1.5 text-[11px] text-neutral-200 outline-none focus:border-blue-500/40 transition-all font-semibold cursor-pointer text-center"
+            className="w-full bg-[var(--sclade-input-bg)] border border-[var(--sclade-input-border)] rounded-lg px-2 py-1.5 text-[11px] text-[var(--sclade-text-primary)] outline-none focus:border-blue-500/40 transition-all font-semibold cursor-pointer text-center"
           >
             {YEARS.map((y) => (
-              <option key={y} value={y} className="bg-neutral-950 text-neutral-200">{y}</option>
+              <option key={y} value={y} className="bg-[var(--sclade-popover-bg)] text-[var(--sclade-text-primary)]">{y}</option>
             ))}
           </select>
         </div>
@@ -224,11 +224,11 @@ function ExperienceDatePicker({
           id={`present-checkbox-${value}`}
           checked={isPresent}
           onChange={(e) => update({ isPresent: e.target.checked })}
-          className="rounded border-white/10 bg-neutral-900/40 text-blue-500 focus:ring-blue-500/30 w-3.5 h-3.5 cursor-pointer accent-blue-500"
+          className="rounded border-[var(--sclade-input-border)] bg-[var(--sclade-input-bg)] text-blue-500 focus:ring-blue-500/30 w-3.5 h-3.5 cursor-pointer accent-blue-500"
         />
         <label
           htmlFor={`present-checkbox-${value}`}
-          className="text-[10px] font-bold text-neutral-500 select-none cursor-pointer hover:text-neutral-300 transition-colors"
+          className="text-[10px] font-bold text-[var(--sclade-text-secondary)] select-none cursor-pointer hover:text-[var(--sclade-text-primary)] transition-colors"
         >
           Currently work here (Present)
         </label>
@@ -242,19 +242,19 @@ function ExperienceDatePicker({
             <select
               value={endMonth === "Present" ? "Dec" : endMonth}
               onChange={(e) => update({ endMonth: e.target.value })}
-              className="w-full bg-neutral-900/40 border border-white/5 rounded-lg px-2 py-1.5 text-[11px] text-neutral-200 outline-none focus:border-blue-500/40 transition-all font-semibold cursor-pointer text-center"
+              className="w-full bg-[var(--sclade-input-bg)] border border-[var(--sclade-input-border)] rounded-lg px-2 py-1.5 text-[11px] text-[var(--sclade-text-primary)] outline-none focus:border-blue-500/40 transition-all font-semibold cursor-pointer text-center"
             >
               {MONTHS.map((m) => (
-                <option key={m} value={m} className="bg-neutral-950 text-neutral-200">{m}</option>
+                <option key={m} value={m} className="bg-[var(--sclade-popover-bg)] text-[var(--sclade-text-primary)]">{m}</option>
               ))}
             </select>
             <select
               value={endYear}
               onChange={(e) => update({ endYear: e.target.value })}
-              className="w-full bg-neutral-900/40 border border-white/5 rounded-lg px-2 py-1.5 text-[11px] text-neutral-200 outline-none focus:border-blue-500/40 transition-all font-semibold cursor-pointer text-center"
+              className="w-full bg-[var(--sclade-input-bg)] border border-[var(--sclade-input-border)] rounded-lg px-2 py-1.5 text-[11px] text-[var(--sclade-text-primary)] outline-none focus:border-blue-500/40 transition-all font-semibold cursor-pointer text-center"
             >
               {YEARS.map((y) => (
-                <option key={y} value={y} className="bg-neutral-950 text-neutral-200">{y}</option>
+                <option key={y} value={y} className="bg-[var(--sclade-popover-bg)] text-[var(--sclade-text-primary)]">{y}</option>
               ))}
             </select>
           </div>
@@ -419,6 +419,29 @@ export function EditorClient({
   const [isTailoring, setIsTailoring] = useState(false);
   const [jdText, setJdText] = useState("");
   const [jobTitle, setJobTitle] = useState("");
+  const [theme, setTheme] = useState("dark");
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("sclade-theme");
+    if (savedTheme === "light" || savedTheme === "dark") {
+      setTheme(savedTheme);
+    } else {
+      const isLightSystem = window.matchMedia("(prefers-color-scheme: light)").matches;
+      setTheme(isLightSystem ? "light" : "dark");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (theme === "light") {
+      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.add("light");
+      localStorage.setItem("sclade-theme", "light");
+    } else {
+      document.documentElement.classList.remove("light");
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("sclade-theme", "dark");
+    }
+  }, [theme]);
 
   // Derived CV object for preview and PDF
   const cv: CVData = {
@@ -598,6 +621,7 @@ export function EditorClient({
 
 
   const addExpBullet = (expIdx: number) => {
+    if ((experience[expIdx]?.bullets?.length || 0) >= 3) return; // max 3 bullets per role
     const nu = [...experience];
     nu[expIdx] = { ...nu[expIdx], bullets: [...nu[expIdx].bullets, ""] };
     setExperience(nu);
@@ -613,6 +637,7 @@ export function EditorClient({
   };
 
   const addExperience = () => {
+    if (experience.length >= 3) return; // CV hard limit: max 3 experience entries
     setExperience([
       ...experience,
       { company: "", title: "", period: "", bullets: [""] },
@@ -631,6 +656,7 @@ export function EditorClient({
   };
 
   const addEducation = () => {
+    if (education.length >= 3) return; // CV hard limit: max 3 education entries
     setEducation([...education, { school: "", degree: "", year: "", gpa: "", gpaType: "gpa", current: false }]);
   };
 
@@ -907,24 +933,24 @@ export function EditorClient({
     const hasUnsavedChanges = !!saveTimer.current;
     
     let btnText = "Saved ✓";
-    let btnStyle = "text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 cursor-default";
+    let btnStyle = "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 cursor-default";
     let Icon = CheckCircle2;
     
     if (saveStatus === "saving") {
       btnText = "Saving...";
-      btnStyle = "text-blue-400 bg-blue-500/10 border border-blue-500/20 cursor-not-allowed";
+      btnStyle = "text-blue-600 dark:text-blue-400 bg-blue-500/10 border border-blue-500/20 cursor-not-allowed";
       Icon = Loader2;
     } else if (saveStatus === "error") {
       btnText = "Sync Error";
-      btnStyle = "text-red-400 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 cursor-pointer animate-pulse";
+      btnStyle = "text-red-600 dark:text-red-400 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 cursor-pointer animate-pulse";
       Icon = AlertTriangle;
     } else if (hasUnsavedChanges) {
       btnText = "Save changes";
-      btnStyle = "text-amber-400 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 cursor-pointer shadow-[0_0_15px_rgba(245,158,11,0.15)]";
+      btnStyle = "text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 cursor-pointer shadow-[0_0_15px_rgba(245,158,11,0.15)]";
       Icon = Save;
     } else if (saveStatus === "idle") {
       btnText = "Save Resume";
-      btnStyle = "text-neutral-400 bg-neutral-500/10 border border-neutral-500/20 hover:bg-neutral-500/20 cursor-pointer";
+      btnStyle = "text-neutral-600 dark:text-neutral-400 bg-neutral-500/10 border border-neutral-500/20 hover:bg-neutral-500/20 cursor-pointer";
       Icon = Save;
     }
     
@@ -954,14 +980,14 @@ export function EditorClient({
     if (cvWarnings.length === 0) return null;
     return (
       <div className="mx-4 mb-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2">
-        <AlertTriangle className="w-3.5 h-3.5 text-amber-400 mt-0.5 shrink-0" />
+        <AlertTriangle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
         <div>
-          <p className="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-1">CV Quality Issues Detected</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 mb-1">CV Quality Issues Detected</p>
           {cvWarnings.map((w, i) => (
-            <p key={i} className="text-[10px] text-amber-300/70">{w}</p>
+            <p key={i} className="text-[10px] text-amber-800/80 dark:text-amber-300/70">{w}</p>
           ))}
         </div>
-        <button onClick={() => setCvWarnings([])} className="ml-auto text-amber-500/50 hover:text-amber-400">
+        <button onClick={() => setCvWarnings([])} className="ml-auto text-amber-600/50 hover:text-amber-700 dark:text-amber-500/50 dark:hover:text-amber-400">
           <X className="w-3 h-3" />
         </button>
       </div>
@@ -1037,9 +1063,9 @@ export function EditorClient({
           multiline
           rows={5}
         />
-        <div className="mt-3 flex items-start gap-2 px-3 py-2 bg-yellow-500/5 border border-yellow-500/10 rounded-xl">
-           <Zap className="w-3 h-3 text-yellow-500 mt-0.5 shrink-0" />
-           <p className="text-[10px] text-yellow-200/60 leading-relaxed font-medium">Recruiters scan this for 7 seconds. Aim for exactly two high-density sentences.</p>
+        <div className="mt-3 flex items-start gap-2 px-3 py-2 bg-amber-500/10 dark:bg-yellow-500/5 border border-amber-500/20 dark:border-yellow-500/10 rounded-xl">
+           <Zap className="w-3 h-3 text-amber-600 dark:text-yellow-500 mt-0.5 shrink-0" />
+           <p className="text-[10px] text-amber-800/80 dark:text-yellow-200/60 leading-relaxed font-medium">Recruiters scan this for 7 seconds. Aim for exactly two high-density sentences.</p>
         </div>
       </div>
     </div>
@@ -1049,15 +1075,21 @@ export function EditorClient({
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center justify-between mb-4">
         <SectionLabel>Education</SectionLabel>
-        <button
-          onClick={addEducation}
-          className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-neutral-500 hover:text-white transition-all bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-full border border-white/5"
-        >
-          <Plus className="w-3.5 h-3.5" /> Entry
-        </button>
+        {education.length < 3 ? (
+          <button
+            onClick={addEducation}
+            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[var(--sclade-text-secondary)] hover:text-[var(--sclade-text-primary)] transition-all bg-[var(--sclade-btn-secondary-bg)] px-3 py-1.5 rounded-full border border-[var(--sclade-popover-border)]"
+          >
+            <Plus className="w-3.5 h-3.5" /> Entry
+          </button>
+        ) : (
+          <span className="text-[9px] font-black uppercase tracking-widest text-amber-600/70 px-3 py-1.5 rounded-full border border-amber-600/20 bg-amber-600/5">
+            Max 3 reached
+          </span>
+        )}
       </div>
       {education.map((edu, i) => (
-        <div key={i} className="group relative bg-[#121212] border border-white/5 rounded-2xl p-5 mb-4 hover:border-blue-500/20 transition-all">
+        <div key={i} className="group relative bg-[var(--sclade-card-bg)] border border-[var(--sclade-card-border)] rounded-2xl p-5 mb-4 hover:border-blue-500/20 transition-all">
           <button
             onClick={() => removeEducation(i)}
             className="absolute top-4 right-4 text-neutral-700 hover:text-red-400 p-2 opacity-0 group-hover:opacity-100 transition-all rounded-lg hover:bg-red-500/5"
@@ -1082,7 +1114,7 @@ export function EditorClient({
                    className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider transition-all select-none cursor-pointer ${
                      edu.current
                        ? "bg-emerald-600 text-white shadow-[0_2px_8px_rgba(16,185,129,0.2)] font-bold"
-                       : "bg-neutral-900 text-neutral-500 border border-white/5 hover:text-neutral-300"
+                       : "bg-[var(--sclade-btn-secondary-bg)] text-[var(--sclade-text-secondary)] border border-[var(--sclade-popover-border)] hover:text-[var(--sclade-text-primary)]"
                    }`}
                  >
                    Pursuing
@@ -1096,7 +1128,7 @@ export function EditorClient({
             </div>
             <div className="col-span-1">
                <SectionLabel>GPA / Mark Type</SectionLabel>
-               <div className="flex bg-[#0a0a0a] border border-white/[0.05] p-0.5 rounded-lg text-[8px] font-black uppercase tracking-wider gap-0.5 select-none w-full mb-1.5 shrink-0">
+               <div className="flex bg-[var(--sclade-input-bg)] border border-[var(--sclade-input-border)] p-0.5 rounded-lg text-[8px] font-black uppercase tracking-wider gap-0.5 select-none w-full mb-1.5 shrink-0">
                  {(["gpa", "cgpa", "percentage"] as const).map((t) => (
                    <button
                      key={t}
@@ -1105,7 +1137,7 @@ export function EditorClient({
                      className={`flex-1 py-1 rounded transition-all cursor-pointer text-center ${
                        (edu.gpaType || "gpa") === t
                          ? "bg-blue-600 text-white font-bold"
-                         : "text-neutral-500 hover:text-neutral-300"
+                         : "text-[var(--sclade-text-muted)] hover:text-[var(--sclade-text-secondary)]"
                      }`}
                    >
                      {t === "percentage" ? "%" : t.toUpperCase()}
@@ -1126,12 +1158,18 @@ export function EditorClient({
       <div className="pt-8 border-t border-white/5">
         <div className="flex items-center justify-between mb-4">
           <SectionLabel>Achievements & Certifications</SectionLabel>
-          <button
-            onClick={() => setAchievements([...achievements, ""])}
-            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-neutral-500 hover:text-white transition-all bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-full border border-white/5"
-          >
-            <Plus className="w-3.5 h-3.5" /> Achievement
-          </button>
+          {achievements.length < 4 ? (
+            <button
+              onClick={() => setAchievements([...achievements, ""])}
+              className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-neutral-500 hover:text-white transition-all bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-full border border-white/5"
+            >
+              <Plus className="w-3.5 h-3.5" /> Achievement
+            </button>
+          ) : (
+            <span className="text-[9px] font-black uppercase tracking-widest text-amber-600/70 px-3 py-1.5 rounded-full border border-amber-600/20 bg-amber-600/5">
+              Max 4 reached
+            </span>
+          )}
         </div>
         <div className="space-y-4">
           {achievements.map((ach, idx) => {
@@ -1213,7 +1251,7 @@ export function EditorClient({
             };
 
             return (
-              <div key={idx} className="relative group p-4 bg-[#0d0d0d] rounded-xl border border-white/[0.03] hover:border-white/10 transition-all flex flex-col gap-4">
+              <div key={idx} className="relative group p-4 bg-[var(--sclade-input-bg)] rounded-xl border border-[var(--sclade-input-border)] hover:border-[var(--sclade-popover-border)] transition-all flex flex-col gap-4">
                 <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
                   <button
                     type="button"
@@ -1252,21 +1290,21 @@ export function EditorClient({
                             <select
                               value={selMonth}
                               onChange={(e) => setDate(e.target.value, selYear)}
-                              className="flex-1 bg-neutral-900/40 border border-white/5 rounded-xl px-3 py-2.5 text-[13px] text-neutral-200 outline-none focus:border-blue-500/40 transition-all"
+                              className="flex-1 bg-[var(--sclade-input-bg)] border border-[var(--sclade-input-border)] rounded-xl px-3 py-2.5 text-[13px] text-[var(--sclade-text-primary)] outline-none focus:border-blue-500/40 transition-all font-semibold cursor-pointer"
                             >
-                              <option value="">Month</option>
+                              <option value="" className="bg-[var(--sclade-popover-bg)] text-[var(--sclade-text-primary)]">Month</option>
                               {MONTHS.map((m) => (
-                                <option key={m} value={m}>{m}</option>
+                                <option key={m} value={m} className="bg-[var(--sclade-popover-bg)] text-[var(--sclade-text-primary)]">{m}</option>
                               ))}
                             </select>
                             <select
                               value={selYear}
                               onChange={(e) => setDate(selMonth, e.target.value)}
-                              className="flex-1 bg-neutral-900/40 border border-white/5 rounded-xl px-3 py-2.5 text-[13px] text-neutral-200 outline-none focus:border-blue-500/40 transition-all"
+                              className="flex-1 bg-[var(--sclade-input-bg)] border border-[var(--sclade-input-border)] rounded-xl px-3 py-2.5 text-[13px] text-[var(--sclade-text-primary)] outline-none focus:border-blue-500/40 transition-all font-semibold cursor-pointer"
                             >
-                              <option value="">Year</option>
+                              <option value="" className="bg-[var(--sclade-popover-bg)] text-[var(--sclade-text-primary)]">Year</option>
                               {YEARS.map((y) => (
-                                <option key={y} value={y}>{y}</option>
+                                <option key={y} value={y} className="bg-[var(--sclade-popover-bg)] text-[var(--sclade-text-primary)]">{y}</option>
                               ))}
                             </select>
                           </>
@@ -1318,15 +1356,15 @@ export function EditorClient({
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
       {/* GitHub Sync Card */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-blue-900/20 via-indigo-900/10 to-transparent border border-blue-500/15 rounded-2xl p-5">
+      <div className="relative overflow-hidden bg-gradient-to-br from-blue-500/5 via-indigo-500/5 to-transparent dark:from-blue-900/20 dark:via-indigo-900/10 border border-blue-500/15 rounded-2xl p-5">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(59,130,246,0.08),transparent_60%)]" />
         <div className="relative flex items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <GitBranch className="w-3.5 h-3.5 text-blue-400" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-300">GitHub Skill Sync</span>
+              <GitBranch className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 dark:text-blue-300">GitHub Skill Sync</span>
             </div>
-            <p className="text-[10px] text-neutral-500 leading-relaxed max-w-[220px]">
+            <p className="text-[10px] text-[var(--sclade-text-secondary)] leading-relaxed max-w-[220px]">
               Scans your repos &amp; README files to auto-discover technologies you've actually used.
             </p>
           </div>
@@ -1358,14 +1396,14 @@ export function EditorClient({
           tools: "e.g. Docker, PostgreSQL, AWS...",
         };
         const colors: Record<string, string> = {
-          languages: "bg-violet-500/10 text-violet-300 border-violet-500/20 hover:bg-violet-500/20",
-          frameworks: "bg-sky-500/10 text-sky-300 border-sky-500/20 hover:bg-sky-500/20",
-          tools: "bg-emerald-500/10 text-emerald-300 border-emerald-500/20 hover:bg-emerald-500/20",
+          languages: "bg-violet-500/10 text-violet-700 dark:text-violet-300 border-violet-500/20 hover:bg-violet-500/20",
+          frameworks: "bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/20 hover:bg-sky-500/20",
+          tools: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20 hover:bg-emerald-500/20",
         };
         const dotColors: Record<string, string> = {
-          languages: "bg-violet-400",
-          frameworks: "bg-sky-400",
-          tools: "bg-emerald-400",
+          languages: "bg-violet-600 dark:bg-violet-400",
+          frameworks: "bg-sky-600 dark:bg-sky-400",
+          tools: "bg-emerald-600 dark:bg-emerald-400",
         };
 
         return (
@@ -1382,7 +1420,7 @@ export function EditorClient({
             </div>
 
             {/* Chips */}
-            <div className="flex flex-wrap gap-2 min-h-[44px] p-3 bg-[#0f0f0f] border border-white/[0.06] rounded-xl transition-all focus-within:border-white/15">
+            <div className="flex flex-wrap gap-2 min-h-[44px] p-3 bg-[var(--sclade-input-bg)] border border-[var(--sclade-input-border)] rounded-xl transition-all focus-within:border-[var(--sclade-popover-border)]">
               {(skills[type] || []).map((s, i) => (
                 <span
                   key={i}
@@ -1420,10 +1458,10 @@ export function EditorClient({
                   }
                 }}
                 placeholder={placeholders[type]}
-                className="w-full bg-transparent border border-white/[0.06] group-hover:border-white/10 focus:border-blue-500/40 rounded-xl px-3.5 py-2.5 text-[11px] text-neutral-300 placeholder:text-neutral-700 outline-none transition-all font-medium"
+                className="w-full bg-[var(--sclade-input-bg)] border border-[var(--sclade-input-border)] rounded-xl px-3.5 py-2.5 text-[11px] text-[var(--sclade-text-primary)] placeholder:text-[var(--sclade-text-muted)] outline-none focus:border-blue-500/40 transition-all font-medium"
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
-                <kbd className="text-[8px] font-bold text-neutral-700 bg-white/5 px-1.5 py-0.5 rounded">Enter</kbd>
+                <kbd className="text-[8px] font-bold text-[var(--sclade-text-muted)] bg-[var(--sclade-input-bg)] border border-[var(--sclade-input-border)] px-1.5 py-0.5 rounded">Enter</kbd>
               </div>
             </div>
           </div>
@@ -1454,12 +1492,12 @@ export function EditorClient({
   const renderExperience = () => (
     <div className="space-y-6">
       {cv.experience.length === 0 && (
-        <div className="text-center py-16 bg-[#111] border border-dashed border-white/5 rounded-[2rem] shadow-inner">
+        <div className="text-center py-16 bg-[var(--sclade-input-bg)] border border-dashed border-[var(--sclade-input-border)] rounded-[2rem] shadow-inner">
           <Briefcase className="w-10 h-10 text-neutral-800 mx-auto mb-4 stroke-[1.5]" />
           <p className="text-neutral-600 text-sm font-bold mb-4 uppercase tracking-[2px]">Empty Trajectory</p>
           <button
             onClick={addExperience}
-            className="px-8 py-3 bg-white/5 hover:bg-white/10 rounded-2xl text-[10px] font-black uppercase text-neutral-400 hover:text-white transition-all border border-white/5"
+            className="px-8 py-3 bg-[var(--sclade-btn-secondary-bg)] rounded-2xl text-[10px] font-black uppercase text-[var(--sclade-text-secondary)] hover:text-[var(--sclade-text-primary)] transition-all border border-[var(--sclade-popover-border)]"
           >
             Create First Node
           </button>
@@ -1467,17 +1505,17 @@ export function EditorClient({
       )}
 
       {cv.experience.map((exp, i) => (
-        <div key={i} className="bg-[#121212] border border-white/5 rounded-[2rem] overflow-hidden group hover:border-blue-500/20 transition-all shadow-lg">
+        <div key={i} className="bg-[var(--sclade-card-bg)] border border-[var(--sclade-card-border)] rounded-[2rem] overflow-hidden group hover:border-blue-500/20 transition-all shadow-lg">
           <div 
             onClick={() => setExpandedExperience(expandedExperience === i ? null : i)}
-            className="px-6 py-4 flex items-center justify-between bg-white/[0.02] cursor-pointer hover:bg-white/[0.04] transition-colors border-b border-white/5"
+            className="px-6 py-4 flex items-center justify-between bg-[var(--sclade-glass-tint)] cursor-pointer hover:opacity-90 transition-all border-b border-[var(--sclade-card-border)]"
           >
             <div className="flex-1 min-w-0 mr-3">
-              <p className="text-sm font-bold text-white truncate font-outfit">{exp.company || "New Experience"}</p>
+              <p className="text-sm font-bold text-[var(--sclade-text-primary)] truncate font-outfit">{exp.company || "New Experience"}</p>
               <div className="flex items-center gap-2 mt-0.5">
-                 <p className="text-[10px] font-black uppercase tracking-widest text-[#444] group-hover:text-blue-500 transition-colors uppercase truncate">{exp.title || "Position"}</p>
+                 <p className="text-[10px] font-black uppercase tracking-widest text-[var(--sclade-text-muted)] group-hover:text-blue-500 transition-colors uppercase truncate">{exp.title || "Position"}</p>
                  <span className="w-1 h-1 rounded-full bg-neutral-800" />
-                 <p className="text-[10px] font-bold text-neutral-600 truncate">{exp.period || "No Dates Set"}</p>
+                 <p className="text-[10px] font-bold text-[var(--sclade-text-muted)] truncate">{exp.period || "No Dates Set"}</p>
               </div>
             </div>
             <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
@@ -1490,7 +1528,7 @@ export function EditorClient({
               </button>
               <button 
                 onClick={() => setExpandedExperience(expandedExperience === i ? null : i)}
-                className="p-2 text-neutral-500 hover:text-white transition-colors"
+                className="p-2 text-[var(--sclade-text-secondary)] hover:text-[var(--sclade-text-primary)] hover:bg-[var(--sclade-input-bg)] rounded-xl transition-all"
                 title={expandedExperience === i ? "Collapse" : "Expand"}
               >
                 {expandedExperience === i ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -1519,12 +1557,18 @@ export function EditorClient({
                 <div className="flex items-center justify-between mb-4">
                   <SectionLabel>Achievements & Responsibilities</SectionLabel>
                   <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => addExpBullet(i)}
-                      className="text-[9px] font-black uppercase tracking-widest text-neutral-600 hover:text-white flex items-center gap-2 bg-white/5 px-2.5 py-1 rounded-lg transition-all"
-                    >
-                      <Plus className="w-3 h-3" /> Outcome
-                    </button>
+                    {(experience[i]?.bullets?.length || 0) < 3 ? (
+                      <button
+                        onClick={() => addExpBullet(i)}
+                        className="text-[9px] font-black uppercase tracking-widest text-neutral-600 hover:text-white flex items-center gap-2 bg-white/5 px-2.5 py-1 rounded-lg transition-all"
+                      >
+                        <Plus className="w-3 h-3" /> Outcome
+                      </button>
+                    ) : (
+                      <span className="text-[9px] font-black uppercase tracking-widest text-amber-600/60 px-2.5 py-1 rounded-lg border border-amber-600/20 bg-amber-600/5">
+                        Max 3 bullets
+                      </span>
+                    )}
                     <button
                       onClick={() => handleGenerateExpBullets(i)}
                       disabled={generatingExpBullets === i}
@@ -1575,13 +1619,19 @@ export function EditorClient({
         </div>
       ))}
 
-      <button
-        onClick={addExperience}
-        className="w-full h-20 flex flex-col items-center justify-center gap-1 border border-dashed border-white/5 hover:border-blue-500/30 bg-white/[0.01] hover:bg-blue-500/5 rounded-[2rem] text-neutral-600 hover:text-blue-400 transition-all duration-300 group"
-      >
-        <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
-        <span className="text-[10px] font-black uppercase tracking-[2px]">Append Career Node</span>
-      </button>
+      {experience.length < 3 ? (
+        <button
+          onClick={addExperience}
+          className="w-full h-20 flex flex-col items-center justify-center gap-1 border border-dashed border-white/5 hover:border-blue-500/30 bg-white/[0.01] hover:bg-blue-500/5 rounded-[2rem] text-neutral-600 hover:text-blue-400 transition-all duration-300 group"
+        >
+          <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+          <span className="text-[10px] font-black uppercase tracking-[2px]">Append Career Node</span>
+        </button>
+      ) : (
+        <div className="w-full h-14 flex items-center justify-center gap-2 border border-dashed border-amber-600/20 bg-amber-600/5 rounded-[2rem]">
+          <span className="text-[10px] font-black uppercase tracking-[2px] text-amber-600/70">Max 3 experience entries — remove one to add another</span>
+        </div>
+      )}
     </div>
   );
 
@@ -1617,8 +1667,8 @@ export function EditorClient({
             key={p.id}
             className={`border rounded-[2rem] overflow-hidden transition-all duration-500 shadow-xl ${
               p.included === false
-                ? "border-white/5 bg-black/40 opacity-40 hover:opacity-70 scale-[0.98]"
-                : "border-white/5 bg-[#121212] hover:border-blue-500/30"
+                ? "border-[var(--sclade-card-border)] bg-[var(--sclade-input-bg)] opacity-40 hover:opacity-70 scale-[0.98]"
+                : "border-[var(--sclade-card-border)] bg-[var(--sclade-card-bg)] hover:border-blue-500/30"
             }`}
           >
             <div
@@ -1627,8 +1677,8 @@ export function EditorClient({
             >
               <div className="flex-1 min-w-0 mr-4">
                 <div className="flex items-center gap-3">
-                  <p className="text-[15px] font-bold text-white truncate font-outfit tracking-tight">{p.title || "Untitled Project"}</p>
-                  {p.included === false && <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 bg-neutral-800 text-neutral-400 rounded-lg border border-white/5">Excluded</span>}
+                  <p className="text-[15px] font-bold text-[var(--sclade-text-primary)] truncate font-outfit tracking-tight">{p.title || "Untitled Project"}</p>
+                  {p.included === false && <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 bg-neutral-800 text-neutral-400 rounded-lg border border-[var(--sclade-popover-border)]">Excluded</span>}
                   {p.aiGenerated && <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-blue-500/10 text-blue-400 rounded border border-blue-500/10">AI</span>}
                 </div>
                 <p className="text-[10px] font-bold uppercase tracking-[2px] text-neutral-600 mt-1">{(p.techStack || []).join(" • ")}</p>
@@ -1651,7 +1701,7 @@ export function EditorClient({
                 >
                   <Trash2 className="w-5 h-5" />
                 </button>
-                <div className={`w-10 h-10 flex items-center justify-center rounded-2xl bg-white/5 border border-white/5 transition-transform ${expandedProject === pIdx ? 'rotate-180' : ''}`}>
+                <div className={`w-10 h-10 flex items-center justify-center rounded-2xl bg-[var(--sclade-input-bg)] border border-[var(--sclade-input-border)] text-[var(--sclade-text-secondary)] transition-all duration-300 ${expandedProject === pIdx ? 'rotate-180' : ''}`}>
                    <ChevronDown className="w-5 h-5" />
                 </div>
               </div>
@@ -1681,7 +1731,11 @@ export function EditorClient({
                   <div className="flex items-center justify-between mb-2">
                     <SectionLabel>Project Highlights</SectionLabel>
                     <div className="flex items-center gap-2">
-                      <button onClick={() => { const nu = [...(p.highlights || []), ""]; updateProject(pIdx, "highlights", nu); }} className="text-[10px] font-bold text-neutral-500 hover:text-white transition-colors mr-1">+ Add Bullet</button>
+                      {(p.highlights || []).length < 2 ? (
+                        <button onClick={() => { const nu = [...(p.highlights || []), ""]; updateProject(pIdx, "highlights", nu); }} className="text-[10px] font-bold text-neutral-500 hover:text-white transition-colors mr-1">+ Add Bullet</button>
+                      ) : (
+                        <span className="text-[9px] font-black uppercase tracking-widest text-amber-600/60 px-2 py-0.5 rounded border border-amber-600/20 bg-amber-600/5">Max 2</span>
+                      )}
                       <button
                         onClick={() => handleGenerateProjectFromReadme(pIdx)}
                         disabled={generatingProjectFromReadme === pIdx}
@@ -1714,10 +1768,24 @@ export function EditorClient({
       })}
 
       {projects.length === 0 && (
-        <div className="text-center py-16 bg-[#111] border border-dashed border-white/5 rounded-[2rem]">
+        <div className="text-center py-16 bg-[var(--sclade-input-bg)] border border-dashed border-[var(--sclade-input-border)] rounded-[2rem]">
           <Terminal className="w-10 h-10 text-neutral-800 mx-auto mb-4 stroke-[1.5]" />
           <p className="text-neutral-600 text-sm font-bold mb-4 uppercase tracking-[2px]">No Active Builds</p>
-          <button onClick={() => setProjects([{ id: Math.random().toString(), title: "", description: "", techStack: [], highlights: [""] }])} className="px-8 py-3 bg-white/5 rounded-2xl text-[10px] font-black uppercase text-neutral-400 hover:text-white transition-all border border-white/5">Initiate Project</button>
+          <button onClick={() => setProjects([{ id: Math.random().toString(), title: "", description: "", techStack: [], highlights: [""] }])} className="px-8 py-3 bg-[var(--sclade-btn-secondary-bg)] rounded-2xl text-[10px] font-black uppercase text-[var(--sclade-text-secondary)] hover:text-[var(--sclade-text-primary)] transition-all border border-[var(--sclade-popover-border)]">Initiate Project</button>
+        </div>
+      )}
+      {projects.length > 0 && projects.filter(p => p.included !== false).length < 3 && (
+        <button
+          onClick={() => setProjects([...projects, { id: Math.random().toString(), title: "", description: "", techStack: [], highlights: [""] }])}
+          className="w-full h-16 flex flex-col items-center justify-center gap-1 border border-dashed border-[var(--sclade-popover-border)] hover:border-blue-500/30 bg-[var(--sclade-glass-tint)] hover:bg-blue-500/5 rounded-[2rem] text-[var(--sclade-text-muted)] hover:text-blue-500 transition-all duration-300 group"
+        >
+          <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
+          <span className="text-[10px] font-black uppercase tracking-[2px]">Add Project</span>
+        </button>
+      )}
+      {projects.length > 0 && projects.filter(p => p.included !== false).length >= 3 && (
+        <div className="w-full h-14 flex items-center justify-center gap-2 border border-dashed border-amber-600/20 bg-amber-600/5 rounded-[2rem]">
+          <span className="text-[10px] font-black uppercase tracking-[2px] text-amber-600/70">Max 3 projects — exclude or remove one to add another</span>
         </div>
       )}
 
@@ -1742,10 +1810,10 @@ export function EditorClient({
   // ─────────────────────────────────────────────
   const renderTailor = () => (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="bg-blue-600/5 border border-blue-600/10 rounded-[2rem] p-8 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-3xl" />
-        <h3 className="text-xl font-bold text-white mb-2 font-outfit">Job Description Specializer</h3>
-        <p className="text-sm text-blue-200/50 leading-relaxed mb-6">
+      <div className="bg-blue-500/[0.04] border border-blue-500/10 dark:border-blue-500/5 rounded-[2rem] p-8 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-3xl pointer-events-none" />
+        <h3 className="text-xl font-bold text-blue-900 dark:text-white mb-2 font-outfit">Job Description Specializer</h3>
+        <p className="text-sm text-blue-700/70 dark:text-blue-200/60 leading-relaxed mb-6 font-medium">
           Paste the job description below. Our AI will align your summary, skills, and projects to match the recruiter's specific requirements.
         </p>
 
@@ -1756,7 +1824,7 @@ export function EditorClient({
               value={jobTitle}
               onChange={(e) => setJobTitle(e.target.value)}
               placeholder="e.g. Senior Frontend Engineer"
-              className="w-full bg-neutral-900/60 border border-white/5 rounded-2xl px-5 py-4 text-sm text-white outline-none focus:border-blue-500/40 transition-all"
+              className="w-full bg-[var(--sclade-input-bg)] border border-[var(--sclade-input-border)] text-[var(--sclade-text-primary)] placeholder:text-[var(--sclade-text-muted)] rounded-2xl px-5 py-4 text-sm outline-none focus:border-blue-500/40 transition-all font-medium"
             />
           </div>
           <div>
@@ -1766,7 +1834,7 @@ export function EditorClient({
               onChange={(e) => setJdText(e.target.value)}
               placeholder="Paste the JD here..."
               rows={10}
-              className="w-full bg-neutral-900/60 border border-white/5 rounded-2xl px-5 py-4 text-sm text-white outline-none focus:border-blue-500/40 transition-all resize-none"
+              className="w-full bg-[var(--sclade-input-bg)] border border-[var(--sclade-input-border)] text-[var(--sclade-text-primary)] placeholder:text-[var(--sclade-text-muted)] rounded-2xl px-5 py-4 text-sm outline-none focus:border-blue-500/40 transition-all resize-none font-medium"
             />
           </div>
           
@@ -1802,7 +1870,7 @@ export function EditorClient({
     { id: "profile", label: "Profile", icon: <User className="w-4 h-4" /> },
     { id: "skills", label: "Skills", icon: <Cpu className="w-4 h-4" /> },
     { id: "experience", label: "Experience", icon: <Briefcase className="w-4 h-4" /> },
-    { id: "projects", label: "Projects", icon: <div className="relative"><Code className="w-4 h-4" />{projects.length > 0 && <span className="absolute -top-2 -right-2 bg-blue-500 text-[8px] px-1 rounded-full">{projects.length}</span>}</div> },
+    { id: "projects", label: "Projects", icon: <Code2 className="w-4 h-4" /> },
     { id: "education", label: "Education", icon: <GraduationCap className="w-4 h-4" /> },
     { id: "tailor", label: "Match Job", icon: <Sparkles className="w-4 h-4" /> },
   ];
@@ -1811,33 +1879,40 @@ export function EditorClient({
   // Render
   // ─────────────────────────────────────────────
   return (
-    <div className="flex h-screen bg-[#050505] text-[#e5e5e5] overflow-hidden font-inter selection:bg-blue-500/30">
+    <div className="flex h-screen bg-[var(--sclade-bg)] text-[var(--sclade-text-primary)] overflow-hidden font-inter selection:bg-blue-500/30 transition-colors duration-200">
       {/* ── Left Sidebar Header ── */}
-      <div className="w-[420px] flex-shrink-0 flex flex-col border-r border-white/[0.03] bg-[#0a0a0a] shadow-[10px_0_40px_rgba(0,0,0,0.4)] z-20">
+      <div className="w-[420px] flex-shrink-0 flex flex-col border-r border-[var(--sclade-popover-border)] bg-[var(--sclade-popover-bg)] shadow-[10px_0_40px_rgba(0,0,0,0.4)] z-20 transition-colors duration-200">
         {/* Superior Header */}
-        <header className="px-6 py-5 flex items-center justify-between border-b border-white/[0.03] relative bg-[#0a0a0a]">
+        <header className="px-6 py-5 flex items-center justify-between border-b border-[var(--sclade-popover-border)] relative bg-[var(--sclade-popover-bg)] transition-colors duration-200">
           <div className="absolute inset-0 bg-blue-600/5 blur-[80px] pointer-events-none" />
           <div className="flex items-center gap-3.5 relative">
-             <div className="relative w-9 h-9 rounded-xl p-[1px] bg-gradient-to-br from-blue-500 to-indigo-500 shadow-[0_0_20px_rgba(37,99,235,0.2)]">
-               <div className="w-full h-full bg-[#0a0a0a]/90 rounded-[11px] flex items-center justify-center">
-                 <Cpu className="w-4 h-4 text-blue-400 animate-pulse" />
-               </div>
-             </div>
-            <div className="flex flex-col justify-center">
-               <span className="font-extrabold text-sm tracking-tight font-outfit uppercase leading-none flex items-center text-white">
-                 RESUMMIT
-                 <span className="text-[9px] font-black uppercase bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-1.5 py-0.5 rounded-md ml-1.5 shadow-[0_2px_8px_rgba(37,99,235,0.3)] tracking-wider">
-                   AI
-                 </span>
-               </span>
-               <div className="flex items-center gap-1.5 mt-1.5 relative">
-                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping absolute" style={{ width: '6px', height: '6px' }} />
-                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 relative" />
-                 <span className="text-[8px] font-black uppercase tracking-[2px] text-neutral-500">Core Engine V2</span>
-               </div>
+            <div className="logo scale-[0.8] origin-left">
+              <svg viewBox="0 0 32 32" className="logo-icon-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7 6C7 4.34315 8.34315 3 10 3H19L25 9V26C25 27.6569 23.6569 29 22 29H10C8.34315 29 7 27.6569 7 26V6Z" className="logo-doc-body" />
+                <path d="M19 3V9H25L19 3Z" className="logo-doc-fold" />
+                <path d="M11 13H17M11 17H21M11 21H18M11 25H20" className="logo-doc-lines" strokeWidth="2" strokeLinecap="round" />
+                <path d="M20 8.5L25 3.5" className="logo-flag-pole" strokeWidth="2" strokeLinecap="round" />
+                <path d="M25 3.5L27 6.5L23.5 5.5Z" className="logo-flag-banner" />
+              </svg>
+              <div className="logo-text-group">
+                <div className="logo-wordmark flex items-center font-outfit">
+                  RESUMMIT
+                  <span className="text-[9px] font-black uppercase bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-1.5 py-0.5 rounded-md ml-1.5 shadow-[0_2px_8px_rgba(37,99,235,0.3)] tracking-wider normal-case h-fit">
+                    AI
+                  </span>
+                </div>
+                <div className="logo-tagline font-mono">YOUR COMMITS. YOUR CAREER.</div>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-3 relative">
+          <div className="flex items-center gap-2.5 relative">
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="flex items-center justify-center w-8 h-8 rounded-xl bg-[var(--sclade-btn-secondary-bg)] border border-[var(--sclade-popover-border)] text-[var(--sclade-text-secondary)] hover:text-[var(--sclade-text-primary)] hover:bg-[var(--sclade-input-bg)] active:scale-95 transition-all cursor-pointer"
+              title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+              {theme === "dark" ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+            </button>
             <SaveIndicator />
           </div>
         </header>
@@ -1846,7 +1921,7 @@ export function EditorClient({
         <CvWarningBanner />
 
         {/* Global Action Bar */}
-        <div className="px-6 py-4 border-b border-white/[0.03] flex flex-col gap-4 bg-white/[0.01]">
+        <div className="px-6 py-4 border-b border-[var(--sclade-popover-border)] flex flex-col gap-4 bg-[var(--sclade-glass-tint)]">
             <div className="flex items-center justify-between">
                {atsData ? (
                  <button
@@ -1869,46 +1944,46 @@ export function EditorClient({
                <button
                  onClick={handleExportPDF}
                  disabled={isExporting}
-                 className="flex items-center gap-2 bg-white text-black hover:bg-neutral-200 transition-all px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg disabled:opacity-50"
+                 className="flex items-center gap-2 bg-[var(--sclade-btn-secondary-bg)] text-[var(--sclade-btn-secondary-text)] hover:opacity-90 transition-all px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg border border-[var(--sclade-popover-border)] disabled:opacity-50"
                >
                  {isExporting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
                  Export
                </button>
             </div>
 
-            <div className="flex bg-neutral-900 p-1 rounded-xl border border-white/5 relative overflow-hidden h-10">
+            <div className="flex bg-[var(--sclade-input-bg)] p-1 rounded-xl border border-[var(--sclade-input-border)] relative overflow-hidden h-10">
               <div 
                 className={`absolute top-1 bottom-1 transition-all duration-500 ease-out rounded-lg ${
-                  mode === "non-specialized" ? "left-1 w-[49%] bg-white" : "left-[50%] w-[49%] bg-blue-600"
+                  mode === "non-specialized" ? "left-1 w-[49%] bg-neutral-200 dark:bg-white shadow-sm" : "left-[50%] w-[49%] bg-blue-600"
                 }`}
               />
               <button
                 onClick={() => setMode("non-specialized")}
                 className={`relative z-10 flex-1 py-1 text-[9px] font-black uppercase tracking-widest transition-all duration-500 ${
-                  mode === "non-specialized" ? "text-black" : "text-neutral-500 hover:text-white"
+                  mode === "non-specialized" ? "text-neutral-900 dark:text-black font-extrabold" : "text-[var(--sclade-text-muted)] hover:text-[var(--sclade-text-secondary)]"
                 }`}
               >
                 Non-Specialized
               </button>
               <button
                 onClick={() => setShowUpgradeModal(true)}
-                className="relative z-10 flex-1 py-1 text-[9px] font-black uppercase tracking-widest transition-all duration-500 text-neutral-500 hover:text-neutral-300 flex items-center justify-center gap-1.5 cursor-pointer"
+                className="relative z-10 flex-1 py-1 text-[9px] font-black uppercase tracking-widest transition-all duration-500 text-[var(--sclade-text-muted)] hover:text-[var(--sclade-text-secondary)] flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <span>Specialized</span>
-                <Lock className="w-2.5 h-2.5 text-neutral-600 shrink-0" />
+                <Lock className="w-2.5 h-2.5 text-[var(--sclade-text-muted)] shrink-0" />
               </button>
             </div>
         </div>
 
-        <div className="flex bg-black px-2 py-2 gap-1 border-b border-white/[0.03]">
+        <div className="flex bg-[var(--sclade-nav-bg)] px-2 py-2 gap-1 border-b border-[var(--sclade-popover-border)] transition-colors duration-200">
           {tabs.filter(t => t.id !== "tailor").map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as EditorTab)}
               className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-3 text-[8px] font-black uppercase tracking-widest transition-all rounded-xl border ${
                 activeTab === tab.id
-                  ? "bg-blue-600/10 border-blue-600/30 text-blue-400"
-                  : "bg-transparent border-transparent text-neutral-600 hover:text-neutral-400"
+                  ? "bg-blue-500/10 border-blue-500/30 text-blue-600 dark:text-blue-400"
+                  : "bg-transparent border-transparent text-[var(--sclade-text-muted)] hover:text-[var(--sclade-text-secondary)]"
               }`}
             >
               {tab.icon}
@@ -1928,7 +2003,7 @@ export function EditorClient({
       </div>
 
       {/* ── Right Panel: Precision CV Preview ── */}
-      <div className="flex-1 bg-[#1a1a1a] overflow-y-auto flex px-12 py-16 justify-center items-start custom-scrollbar">
+      <div className="flex-1 bg-[var(--sclade-bg)] border-l border-[var(--sclade-popover-border)] overflow-y-auto flex px-12 py-16 justify-center items-start custom-scrollbar transition-colors duration-200">
         <div className="relative group">
           <div className="absolute inset-0 bg-blue-600/5 blur-[120px] -z-10 opacity-0 group-hover:opacity-100 transition-opacity" />
           <ResumePreview 
@@ -1948,12 +2023,12 @@ export function EditorClient({
       {/* Specialized Coming Soon Modal */}
       {showUpgradeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl animate-fade-in">
-          <div className="w-[440px] bg-[#0c0c0e] border border-white/[0.08] p-8 rounded-[2.5rem] relative overflow-hidden shadow-[0_0_50px_rgba(37,99,235,0.15)] transition-all duration-300">
+          <div className="w-[440px] bg-[var(--sclade-popover-bg)] border border-[var(--sclade-popover-border)] p-8 rounded-[2.5rem] relative overflow-hidden shadow-[0_0_50px_rgba(37,99,235,0.15)] transition-all duration-300">
             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-[100px] pointer-events-none" />
             
             <button 
               onClick={() => setShowUpgradeModal(false)}
-              className="absolute top-6 right-6 p-2 text-neutral-500 hover:text-white rounded-full hover:bg-white/5 transition-all"
+              className="absolute top-6 right-6 p-2 text-[var(--sclade-text-muted)] hover:text-[var(--sclade-text-primary)] rounded-full hover:bg-white/5 transition-all"
             >
               <X className="w-4 h-4" />
             </button>
@@ -1964,22 +2039,22 @@ export function EditorClient({
                 <Sparkles className="w-6 h-6 text-white stroke-[2.5]" />
               </div>
               
-              <h3 className="font-extrabold text-xl tracking-tight uppercase text-white font-outfit mb-3">
+              <h3 className="font-extrabold text-xl tracking-tight uppercase text-[var(--sclade-text-primary)] font-outfit mb-3">
                 Specialized Tuning Coming Soon
               </h3>
               
-              <p className="text-neutral-400 text-xs leading-relaxed max-w-sm mb-8">
+              <p className="text-[var(--sclade-text-secondary)] text-xs leading-relaxed max-w-sm mb-8">
                 We are currently training our specialized AI models to compile role-specific resume hierarchies with absolute high-signal metrics. Stay tuned!
               </p>
               
-              <div className="w-full space-y-4 mb-8 text-left bg-white/[0.02] border border-white/[0.04] p-5 rounded-2xl">
+              <div className="w-full space-y-4 mb-8 text-left bg-[var(--sclade-input-bg)] border border-[var(--sclade-input-border)] p-5 rounded-2xl">
                 <div className="flex items-start gap-3">
                   <div className="w-5 h-5 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0 mt-0.5">
                     <Sparkles className="w-3 h-3 text-blue-400" />
                   </div>
                   <div>
-                    <h4 className="text-[10px] font-bold uppercase tracking-wider text-white">Role-Specific Tuning</h4>
-                    <p className="text-[9px] text-neutral-500 mt-1 leading-normal">Tailor experience, skills, and bullets for Frontend, Backend, ML, or Mobile domains.</p>
+                    <h4 className="text-[10px] font-bold uppercase tracking-wider text-[var(--sclade-text-primary)]">Role-Specific Tuning</h4>
+                    <p className="text-[9px] text-[var(--sclade-text-muted)] mt-1 leading-normal">Tailor experience, skills, and bullets for Frontend, Backend, ML, or Mobile domains.</p>
                   </div>
                 </div>
                 
