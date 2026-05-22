@@ -9,6 +9,7 @@ export interface GithubRepo {
   stargazers_count: number;
   forks_count?: number;
   updated_at: string;
+  pushed_at?: string;
   fork: boolean;
   language: string | null;
   topics?: string[];
@@ -109,13 +110,17 @@ export async function fetchUserRepos(accessToken: string): Promise<GithubRepo[]>
   try {
     const response = await axios.get<GithubRepo[]>("https://api.github.com/user/repos", {
       headers: { Authorization: `Bearer ${accessToken}` },
-      params: { sort: "updated", per_page: 100, direction: "desc" },
+      params: { sort: "pushed", per_page: 100, direction: "desc" },
     });
 
     const validRepos = response.data.filter(repo => !isJunkRepo(repo));
 
-    // We return top 50 so user has more choices
-    return validRepos.sort((a, b) => scoreRepo(b) - scoreRepo(a)).slice(0, 50);
+    // We return top 50 most recently pushed/updated repositories so user's latest committed repos are always included
+    return validRepos.sort((a, b) => {
+      const timeA = new Date(a.pushed_at || a.updated_at).getTime();
+      const timeB = new Date(b.pushed_at || b.updated_at).getTime();
+      return timeB - timeA;
+    }).slice(0, 50);
   } catch (error: any) {
     console.error("Error fetching GitHub repos:", error.response?.data || error.message);
     if (error.response?.status === 401) {

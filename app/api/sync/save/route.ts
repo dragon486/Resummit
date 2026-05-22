@@ -23,7 +23,6 @@ export async function POST(req: Request) {
 
   try {
     const { summary, skills, experience, projects: rawProjects } = await req.json();
-    console.log('[DEBUG skills raw]', JSON.stringify(skills))
 
     // Normalization & Safe Unwrapping
     let skillsData = skills

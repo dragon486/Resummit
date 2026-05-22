@@ -64,9 +64,9 @@ export async function runSmartSync(userId: string, accessToken: string, email?: 
 
   if (!user) throw new Error("User not found");
 
-  // 2. Cooldown Check (6 hours)
-  const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000);
-  if (user.githubData?.lastSyncedAt && user.githubData.lastSyncedAt > sixHoursAgo) {
+  // 2. Cooldown Check (1 minute to prevent lockout and allow retries)
+  const oneMinuteAgo = new Date(Date.now() - 1 * 60 * 1000);
+  if (user.githubData?.lastSyncedAt && user.githubData.lastSyncedAt > oneMinuteAgo) {
     if (process.env.NODE_ENV !== "development") {
       console.log("Sync cooldown active. Skipping...");
       return { skipped: true, reason: "COOLDOWN_ACTIVE" };
@@ -157,6 +157,13 @@ export async function runSmartSync(userId: string, accessToken: string, email?: 
 
   const meaningfulRepos = scoredRepos.filter(r => r.score > 0);
 
+  // Sort meaningful repos so that latest committed/updated repo is first
+  const sortedMeaningfulRepos = meaningfulRepos.sort((a, b) => {
+    const timeA = new Date(a.pushed_at || a.updated_at).getTime();
+    const timeB = new Date(b.pushed_at || b.updated_at).getTime();
+    return timeB - timeA;
+  });
+
   // 4. Compare with DB
   const suggestionsToCreate: any[] = [];
   
@@ -174,7 +181,7 @@ export async function runSmartSync(userId: string, accessToken: string, email?: 
     githubUsername = storedRepos[0]?.owner?.login || "";
   } catch { /* ignore */ }
 
-  for (const repo of meaningfulRepos) {
+  for (const repo of sortedMeaningfulRepos) {
     // Only skip if there is a PENDING suggestion already
     const existingPending = user.suggestions.find((s: any) => 
       s.status === "PENDING" && s.title.toLowerCase().includes(repo.name.toLowerCase())
@@ -187,55 +194,46 @@ export async function runSmartSync(userId: string, accessToken: string, email?: 
       p.title?.toLowerCase() === repo.name.toLowerCase()
     );
 
+    if (existingProject) continue;
+
     // Build a human-readable description using repo description (README fetched later per-chunk)
     const repoDesc = repo.description
       ? `${repo.name}: ${repo.description}`
       : `${repo.name} (${repo.language || "multi-language"} project, ${repo.stargazers_count} stars)`;
 
-    if (!existingProject) {
-      suggestionsToCreate.push({
-        type: "NEW_PROJECT",
-        title: `New Project: ${repo.name}`,
-        description: repoDesc,
-        proposedData: repo,
-        priority: 3,
-        confidence: 0.9,
-        _ownerLogin: githubUsername, // internal, stripped before saving
-      });
-    } else {
-      const updatedRecently = new Date(repo.updated_at) > new Date(mainVersion?.updatedAt || 0);
-      if (updatedRecently) {
-        suggestionsToCreate.push({
-          type: "IMPROVE_PROJECT",
-          entityId: existingProject.id,
-          title: `Update ${repo.name}`,
-          description: repoDesc,
-          proposedData: repo,
-          currentData: { name: existingProject.title, bullets: existingProject.highlights },
-          priority: 2,
-          confidence: 0.85,
-          _ownerLogin: githubUsername,
-        });
-      }
-    }
+    suggestionsToCreate.push({
+      type: "NEW_PROJECT",
+      title: `New Project: ${repo.name}`,
+      description: repoDesc,
+      proposedData: repo,
+      priority: 3,
+      confidence: 0.9,
+      _ownerLogin: githubUsername, // internal, stripped before saving
+    });
   }
 
   // 5. Batch Process Top 30 with AI in chunks
   const topSuggestions = suggestionsToCreate
-    .sort((a, b) => b.priority - a.priority || b.confidence - a.confidence)
+    .sort((a, b) => {
+      if (b.priority !== a.priority) return b.priority - a.priority;
+      const timeA = new Date(a.proposedData.pushed_at || a.proposedData.updated_at).getTime();
+      const timeB = new Date(b.proposedData.pushed_at || b.proposedData.updated_at).getTime();
+      return timeB - timeA;
+    })
     .slice(0, 30);
   
   const skillsFoundInThisScan = new Set<string>();
 
-  const chunkSize = 5;
-  for (let i = 0; i < topSuggestions.length; i += chunkSize) {
-    const chunk = topSuggestions.slice(i, i + chunkSize);
+  // Process suggestions. Top 3 suggestions use AI; the remaining use deterministic parsing.
+  await Promise.all(topSuggestions.map(async (suggestion, idx) => {
+    const repo = suggestion.proposedData as any;
+    const ownerLogin = suggestion._ownerLogin || "";
     
-    await Promise.all(chunk.map(async (suggestion) => {
-      const repo = suggestion.proposedData as any;
-      const ownerLogin = suggestion._ownerLogin || "";
-      
-      try {
+    try {
+      let projectData: any;
+      let filteredSkills: { languages: string[]; frameworks: string[]; tools: string[] };
+
+      if (idx < 3) {
         // Fetch README to enrich AI context (best-effort, non-blocking)
         let readme = "";
         if (ownerLogin && repo.name) {
@@ -251,10 +249,10 @@ export async function runSmartSync(userId: string, accessToken: string, email?: 
           stars: repo.stargazers_count || 0,
         }]);
 
-        const projectData = aiResult.projects[0];
+        projectData = aiResult.projects[0];
 
         // Skill Filter
-        const filteredSkills = {
+        filteredSkills = {
           languages: aiResult.skills.languages.filter((l: string) => 
             !allCurrentSkills.includes(l.toLowerCase()) && 
             !skillsFoundInThisScan.has(l.toLowerCase()) &&
@@ -274,47 +272,90 @@ export async function runSmartSync(userId: string, accessToken: string, email?: 
             isRealSkill(t, repo.name)
           )
         };
+      } else {
+        // Generate deterministically for positions 4-30 (eliminates LLM overhead completely)
+        const language = repo.language || "TypeScript";
+        const techStack = Array.isArray(repo.topics) && repo.topics.length > 0 
+          ? repo.topics.slice(0, 3) 
+          : [language, "Node.js", "Git"];
+        
+        const highlights = [
+          `Engineered ${repo.name} using ${language} to resolve bottleneck latency and improve component runtime efficiency.`,
+          repo.description 
+            ? `Integrated ${techStack.join(', ')} and structured standard code patterns to increase application reliability.`
+            : `Refactored core modules and component interfaces to decrease loading times and accelerate deployment pipelines.`
+        ];
 
-        // Add found skills to the tracker
-        Object.values(filteredSkills).flat().forEach(s => skillsFoundInThisScan.add(s.toLowerCase()));
+        projectData = {
+          title: repo.name,
+          techStack,
+          description: repo.description || `High-performance modular project developed using ${language}.`,
+          highlights,
+          aiGenerated: false
+        };
 
-        const skillSummary = Object.values(filteredSkills).flat().slice(0, 3).join(", ");
-        if (skillSummary.length > 0) {
-          await prisma.suggestion.create({
-            data: {
-              userId: user!.id,
-              type: "ADD_SKILL",
-              title: `${skillSummary}${Object.values(filteredSkills).flat().length > 3 ? "..." : ""}`,
-              description: `Detected new capabilities from ${repo.name}: ${Object.values(filteredSkills).flat().join(", ")}`,
-              proposedData: JSON.stringify(filteredSkills),
-              priority: 1,
-              confidence: 0.75,
-              status: "PENDING"
-            }
-          });
-        }
+        filteredSkills = {
+          languages: language && !allCurrentSkills.includes(language.toLowerCase()) && !skillsFoundInThisScan.has(language.toLowerCase()) && isRealSkill(language, repo.name) ? [language] : [],
+          frameworks: (repo.topics || []).filter((t: string) => 
+            ["react", "nextjs", "nestjs", "express", "django", "vue"].includes(t.toLowerCase()) &&
+            !allCurrentSkills.includes(t.toLowerCase()) && 
+            !skillsFoundInThisScan.has(t.toLowerCase()) &&
+            isRealSkill(t, repo.name)
+          ),
+          tools: (repo.topics || []).filter((t: string) => 
+            ["docker", "kubernetes", "aws", "gcp", "postgresql", "mongodb", "redis"].includes(t.toLowerCase()) &&
+            !allCurrentSkills.includes(t.toLowerCase()) && 
+            !skillsFoundInThisScan.has(t.toLowerCase()) &&
+            isRealSkill(t, repo.name)
+          )
+        };
+      }
 
+      // Add found skills to the tracker
+      Object.values(filteredSkills).flat().forEach(s => skillsFoundInThisScan.add(s.toLowerCase()));
+
+      const skillSummary = Object.values(filteredSkills).flat().slice(0, 3).join(", ");
+      if (skillSummary.length > 0) {
         await prisma.suggestion.create({
           data: {
             userId: user!.id,
-            type: suggestion.type,
-            entityId: suggestion.entityId,
-            title: suggestion.title,
-            // Use AI-generated description if available, fall back to repo description
-            description: projectData?.description || suggestion.description,
-            proposedData: JSON.stringify(projectData),
-            currentData: suggestion.currentData ? JSON.stringify(suggestion.currentData) : null,
-            priority: suggestion.priority,
-            confidence: Math.min(0.95, (repo.score / 30) + 0.5),
+            type: "ADD_SKILL",
+            title: `${skillSummary}${Object.values(filteredSkills).flat().length > 3 ? "..." : ""}`,
+            description: `Detected new capabilities from ${repo.name}: ${Object.values(filteredSkills).flat().join(", ")}`,
+            proposedData: JSON.stringify({
+              ...filteredSkills,
+              pushedAt: repo.pushed_at || repo.updated_at || new Date().toISOString()
+            }),
+            priority: 1,
+            confidence: 0.75,
             status: "PENDING"
           }
         });
-
-      } catch (e) {
-        console.error("AI batch failed for", repo.name, e);
       }
-    }));
-  }
+
+      await prisma.suggestion.create({
+        data: {
+          userId: user!.id,
+          type: suggestion.type,
+          entityId: suggestion.entityId,
+          title: suggestion.title,
+          // Use AI-generated description if available, fall back to repo description
+          description: projectData?.description || suggestion.description,
+          proposedData: JSON.stringify({
+            ...projectData,
+            pushedAt: repo.pushed_at || repo.updated_at || new Date().toISOString()
+          }),
+          currentData: suggestion.currentData ? JSON.stringify(suggestion.currentData) : null,
+          priority: suggestion.priority,
+          confidence: Math.min(0.95, (repo.score / 30) + 0.5),
+          status: "PENDING"
+        }
+      });
+
+    } catch (e) {
+      console.error("AI/Deterministic processing failed for", repo.name, e);
+    }
+  }));
 
   // 6. Update GitHub Data and Sync Time
   // Store full repo objects including owner info for future README fetching

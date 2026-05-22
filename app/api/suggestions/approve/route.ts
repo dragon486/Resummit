@@ -11,7 +11,6 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { id } = body;
-    console.log('[APPROVE] raw request body:', JSON.stringify(body, null, 2));
     
     const suggestion = await prisma.suggestion.findUnique({
       where: { id, userId }
@@ -111,7 +110,6 @@ export async function POST(req: Request) {
       data: { status: "APPLIED" }
     });
 
-    console.log('[APPROVE] saved project:', JSON.stringify(projectToAdd, null, 2));
 
     return NextResponse.json({ success: true, project: projectToAdd });
   } catch (error: any) {

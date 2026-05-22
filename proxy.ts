@@ -13,14 +13,17 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/dashboard", req.nextUrl));
   }
 
-  // 2. If at dashboard and NOT logged in, go to login
-  if (pathname.startsWith("/dashboard") && !isLoggedin) {
-    return NextResponse.redirect(new URL("/login", req.nextUrl));
+  // 2. Protect dashboard and editor — redirect unauthenticated users to login
+  const isProtected = pathname.startsWith("/dashboard") || pathname.startsWith("/editor");
+  if (isProtected && !isLoggedin) {
+    const loginUrl = new URL("/login", req.nextUrl);
+    loginUrl.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();
 });
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login"],
+  matcher: ["/dashboard/:path*", "/editor/:path*", "/login"],
 };

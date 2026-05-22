@@ -420,6 +420,37 @@ export function EditorClient({
   const [jdText, setJdText] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [theme, setTheme] = useState("dark");
+  const [sidebarWidth, setSidebarWidth] = useState(420);
+  const [isDragging, setIsDragging] = useState(false);
+  const isResizing = useRef(false);
+
+  const resizeSidebar = useCallback((e: MouseEvent) => {
+    if (!isResizing.current) return;
+    const newWidth = Math.max(380, Math.min(800, e.clientX));
+    setSidebarWidth(newWidth);
+  }, []);
+
+  const stopResizing = useCallback(() => {
+    isResizing.current = false;
+    setIsDragging(false);
+    document.removeEventListener("mousemove", resizeSidebar);
+    document.removeEventListener("mouseup", stopResizing);
+  }, [resizeSidebar]);
+
+  const startResizing = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    isResizing.current = true;
+    setIsDragging(true);
+    document.addEventListener("mousemove", resizeSidebar);
+    document.addEventListener("mouseup", stopResizing);
+  }, [resizeSidebar, stopResizing]);
+
+  useEffect(() => {
+    return () => {
+      document.removeEventListener("mousemove", resizeSidebar);
+      document.removeEventListener("mouseup", stopResizing);
+    };
+  }, [resizeSidebar, stopResizing]);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("sclade-theme");
@@ -1480,6 +1511,7 @@ export function EditorClient({
           setProjects={setProjects}
           setSkills={setSkills}
           setIsSyncing={setIsSyncing}
+          isSyncing={isSyncing}
           filterType="skill"
         />
       </div>
@@ -1602,7 +1634,7 @@ export function EditorClient({
                         placeholder="Achieved X by implementing Y resulting in Z% growth."
                         multiline
                         rows={2}
-                        className="flex-1 text-[13px] !bg-white/[0.02] hover:!bg-white/[0.04]"
+                        className="flex-1 text-[13px]"
                       />
                       <button
                         onClick={() => removeExpBullet(i, j)}
@@ -1798,6 +1830,7 @@ export function EditorClient({
           setProjects={setProjects}
           setSkills={setSkills}
           setIsSyncing={setIsSyncing}
+          isSyncing={isSyncing}
           filterType="project"
         />
       </div>
@@ -1879,14 +1912,39 @@ export function EditorClient({
   // Render
   // ─────────────────────────────────────────────
   return (
-    <div className="flex h-screen bg-[var(--sclade-bg)] text-[var(--sclade-text-primary)] overflow-hidden font-inter selection:bg-blue-500/30 transition-colors duration-200">
+    <div className="flex flex-col md:flex-row h-screen bg-[var(--sclade-bg)] text-[var(--sclade-text-primary)] overflow-hidden font-inter selection:bg-blue-500/30 transition-colors duration-200">
+      {/* Dragging Global Overlay */}
+      {isDragging && (
+        <div className="fixed inset-0 z-50 cursor-col-resize select-none" />
+      )}
+
       {/* ── Left Sidebar Header ── */}
-      <div className="w-[420px] flex-shrink-0 flex flex-col border-r border-[var(--sclade-popover-border)] bg-[var(--sclade-popover-bg)] shadow-[10px_0_40px_rgba(0,0,0,0.4)] z-20 transition-colors duration-200">
+      <div 
+        style={{ width: `${sidebarWidth}px` }}
+        className="max-md:!w-full h-[50vh] md:h-full flex-shrink-0 flex flex-col border-r border-[var(--sclade-popover-border)] bg-[var(--sclade-popover-bg)] shadow-[10px_0_40px_rgba(0,0,0,0.4)] z-20 transition-colors duration-200 relative group/sidebar"
+      >
+        {/* Resize Handle */}
+        <div
+          onMouseDown={startResizing}
+          className={`absolute top-0 -right-1.5 w-3 h-full cursor-col-resize z-30 group max-md:hidden transition-colors ${
+            isDragging ? "bg-blue-500/10" : "hover:bg-blue-500/5 active:bg-blue-500/10"
+          }`}
+          title="Drag to resize sidebar"
+        >
+          <div className={`absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-[2px] rounded-full transition-all duration-150 ${
+            isDragging 
+              ? "bg-blue-500 h-20 shadow-[0_0_8px_rgba(59,130,246,0.6)]" 
+              : "bg-neutral-600/30 group-hover:bg-blue-500/60 h-8 group-hover:h-16"
+          }`} />
+        </div>
         {/* Superior Header */}
         <header className="px-6 py-5 flex items-center justify-between border-b border-[var(--sclade-popover-border)] relative bg-[var(--sclade-popover-bg)] transition-colors duration-200">
           <div className="absolute inset-0 bg-blue-600/5 blur-[80px] pointer-events-none" />
           <div className="flex items-center gap-3.5 relative">
-            <div className="logo scale-[0.8] origin-left">
+            <Link
+              href="/dashboard"
+              className="logo scale-[0.8] origin-left cursor-pointer hover:opacity-90 transition-opacity"
+            >
               <svg viewBox="0 0 32 32" className="logo-icon-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M7 6C7 4.34315 8.34315 3 10 3H19L25 9V26C25 27.6569 23.6569 29 22 29H10C8.34315 29 7 27.6569 7 26V6Z" className="logo-doc-body" />
                 <path d="M19 3V9H25L19 3Z" className="logo-doc-fold" />
@@ -1903,7 +1961,7 @@ export function EditorClient({
                 </div>
                 <div className="logo-tagline font-mono">YOUR COMMITS. YOUR CAREER.</div>
               </div>
-            </div>
+            </Link>
           </div>
           <div className="flex items-center gap-2.5 relative">
             <button
@@ -2003,7 +2061,7 @@ export function EditorClient({
       </div>
 
       {/* ── Right Panel: Precision CV Preview ── */}
-      <div className="flex-1 bg-[var(--sclade-bg)] border-l border-[var(--sclade-popover-border)] overflow-y-auto flex px-12 py-16 justify-center items-start custom-scrollbar transition-colors duration-200">
+      <div className="flex-1 bg-[var(--sclade-bg)] border-t md:border-t-0 md:border-l border-[var(--sclade-popover-border)] overflow-y-auto flex px-6 md:px-12 py-12 md:py-16 justify-center items-start custom-scrollbar transition-colors duration-200">
         <div className="relative group">
           <div className="absolute inset-0 bg-blue-600/5 blur-[120px] -z-10 opacity-0 group-hover:opacity-100 transition-opacity" />
           <ResumePreview 

@@ -3,20 +3,20 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root, .light {
-  --sclade-bg: #fbfbf9;
-  --sclade-text-primary: #111111;
-  --sclade-text-secondary: #5a5a5a;
-  --sclade-text-muted: #888888;
-  --sclade-card-bg: rgba(255, 255, 255, 0.7);
-  --sclade-card-border: rgba(0, 0, 0, 0.03);
-  --sclade-nav-bg: rgba(251, 251, 249, 0.85);
+  --sclade-bg: #f1f5f9; /* Slate 100 - modern cool background separating sheet/editor */
+  --sclade-text-primary: #0f172a; /* Slate 900 */
+  --sclade-text-secondary: #475569; /* Slate 600 */
+  --sclade-text-muted: #94a3b8; /* Slate 400 */
+  --sclade-card-bg: #f8fafc; /* Slate 50 - distinct card panels inside sidebar */
+  --sclade-card-border: #e2e8f0; /* Slate 200 - clean and visible card bounds */
+  --sclade-nav-bg: rgba(255, 255, 255, 0.85);
   --sclade-glass-tint: rgba(37, 99, 235, 0.02);
-  --sclade-input-bg: rgba(0, 0, 0, 0.02);
-  --sclade-input-border: rgba(0, 0, 0, 0.03);
-  --sclade-btn-secondary-bg: #f3f4f6;
-  --sclade-btn-secondary-text: #1f2937;
-  --sclade-popover-bg: rgba(251, 251, 249, 0.95);
-  --sclade-popover-border: rgba(0, 0, 0, 0.02);
+  --sclade-input-bg: #ffffff; /* pure white input boxes */
+  --sclade-input-border: #cbd5e1; /* Slate 300 - clear input focus/outlines */
+  --sclade-btn-secondary-bg: #f1f5f9; /* Slate 100 */
+  --sclade-btn-secondary-text: #0f172a;
+  --sclade-popover-bg: #ffffff; /* pure white sidebar container */
+  --sclade-popover-border: #e2e8f0; /* Slate 200 border */
 }
 
 .dark {
@@ -77,13 +77,50 @@ body {
 /* Premium Light Theme 3D Card Overrides */
 .light .glass-panel,
 .light .bg-\[var\(--sclade-card-bg\)\] {
-  box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.03), 0 4px 12px -2px rgba(0, 0, 0, 0.02), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
-  border-color: rgba(0, 0, 0, 0.02) !important;
+  background-color: rgba(115, 115, 115, 0.03) !important; /* Neutral 500 at 3% */
+  border-color: rgba(115, 115, 115, 0.1) !important; /* Neutral 500 at 10% */
+  box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.01), 0 4px 12px -2px rgba(0, 0, 0, 0.01), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+.light .bg-\[var\(--sclade-input-bg\)\] {
+  background-color: rgba(115, 115, 115, 0.02) !important; /* Neutral 500 at 2% */
+  border-color: rgba(115, 115, 115, 0.08) !important; /* Neutral 500 at 8% */
 }
 
 /* Make inner cards and inputs pop inside the light theme popovers/drawer */
 .light .bg-\[var\(--sclade-popover-bg\)\] {
   box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.06), 0 10px 25px -10px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Dynamic Overrides for Hardcoded Dark Utility Classes in Light Mode */
+.light .border-white\/5,
+.light .border-white\/10,
+.light .border-white\/\[0\.04\] {
+  border-color: var(--sclade-card-border) !important;
+}
+
+.light .bg-white\/5 {
+  background-color: var(--sclade-btn-secondary-bg) !important;
+}
+
+.light .hover\:bg-white\/10:hover,
+.light .hover\:bg-white\/5:hover {
+  background-color: #cbd5e1 !important; /* Visible Slate hover */
+}
+
+.light .bg-white\/\[0\.01\],
+.light .bg-white\/\[0\.02\] {
+  background-color: var(--sclade-input-bg) !important;
+}
+
+.light .text-neutral-500,
+.light .text-neutral-600 {
+  color: var(--sclade-text-secondary) !important;
+}
+
+.light .text-neutral-700,
+.light .text-neutral-800 {
+  color: var(--sclade-text-primary) !important;
 }
 
 .print-only {

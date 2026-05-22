@@ -21,6 +21,33 @@ interface NotificationItem {
   type: "success" | "info" | "warning";
 }
 
+const DEFAULT_NOTIFICATIONS: NotificationItem[] = [
+  {
+    id: "1",
+    title: "GitHub Sync Successful",
+    desc: "Successfully parsed 12 repositories and README assets.",
+    time: "Just now",
+    read: false,
+    type: "success",
+  },
+  {
+    id: "2",
+    title: "ATS Resume Audit Complete",
+    desc: "Semantic intelligence score increased to 82/100.",
+    time: "10 mins ago",
+    read: false,
+    type: "info",
+  },
+  {
+    id: "3",
+    title: "Gemini Key Status Active",
+    desc: "Google generative developer endpoints verified.",
+    time: "1 hour ago",
+    read: true,
+    type: "success",
+  },
+];
+
 export function DashboardControls({ user }: DashboardControlsProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -49,45 +76,57 @@ export function DashboardControls({ user }: DashboardControlsProps) {
       localStorage.setItem("sclade-theme", "dark");
     }
   }, [theme]);
-  const [notifications, setNotifications] = useState<NotificationItem[]>([
-    {
-      id: "1",
-      title: "GitHub Sync Successful",
-      desc: "Successfully parsed 12 repositories and README assets.",
-      time: "Just now",
-      read: false,
-      type: "success",
-    },
-    {
-      id: "2",
-      title: "ATS Resume Audit Complete",
-      desc: "Semantic intelligence score increased to 82/100.",
-      time: "10 mins ago",
-      read: false,
-      type: "info",
-    },
-    {
-      id: "3",
-      title: "Gemini Key Status Active",
-      desc: "Google generative developer endpoints verified.",
-      time: "1 hour ago",
-      read: true,
-      type: "success",
-    },
-  ]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>(DEFAULT_NOTIFICATIONS);
+
+  useEffect(() => {
+    const loadNotifications = () => {
+      const saved = localStorage.getItem("sclade-notifications");
+      if (saved) {
+        try {
+          setNotifications(JSON.parse(saved));
+        } catch (e) {
+          // Keep DEFAULT_NOTIFICATIONS
+        }
+      } else {
+        localStorage.setItem("sclade-notifications", JSON.stringify(DEFAULT_NOTIFICATIONS));
+      }
+    };
+
+    loadNotifications();
+
+    window.addEventListener("sclade-notifications-updated", loadNotifications);
+    return () => {
+      window.removeEventListener("sclade-notifications-updated", loadNotifications);
+    };
+  }, []);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const markAllRead = () => {
-    setNotifications(notifications.map((n) => ({ ...n, read: true })));
+    const updated = notifications.map((n) => ({ ...n, read: true }));
+    setNotifications(updated);
+    localStorage.setItem("sclade-notifications", JSON.stringify(updated));
+    window.dispatchEvent(new Event("sclade-notifications-updated"));
   };
 
   const clearNotification = (id: string) => {
-    setNotifications(notifications.filter((n) => n.id !== id));
+    const updated = notifications.filter((n) => n.id !== id);
+    setNotifications(updated);
+    localStorage.setItem("sclade-notifications", JSON.stringify(updated));
+    window.dispatchEvent(new Event("sclade-notifications-updated"));
   };
 
   return (
     <div className="relative flex items-center gap-4">
+      {/* ── Theme Switcher ── */}
+      <button
+        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+        className="p-2.5 rounded-xl border border-black/5 dark:border-white/5 bg-black/[0.03] dark:bg-neutral-900/40 hover:bg-black/5 dark:hover:bg-neutral-800/80 transition-all text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white cursor-pointer relative"
+        title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      >
+        {theme === "dark" ? <Sun className="w-4.5 h-4.5" /> : <Moon className="w-4.5 h-4.5" />}
+      </button>
+
       {/* ── Notification Trigger ── */}
       <div className="relative">
         <button
@@ -300,37 +339,6 @@ export function DashboardControls({ user }: DashboardControlsProps) {
                         }`}
                       />
                     </button>
-                  </div>
-
-                  {/* Theme Selector */}
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-neutral-500 dark:text-neutral-400 block">
-                      Theme Interface
-                    </label>
-                    <div className="grid grid-cols-2 gap-2 p-1 bg-black/[0.03] dark:bg-white/[0.02] border border-black/5 dark:border-white/5 rounded-2xl">
-                      <button
-                        onClick={() => setTheme("dark")}
-                        className={`py-3 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                          theme === "dark"
-                            ? "bg-neutral-950 text-white dark:bg-white dark:text-black shadow-lg"
-                            : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5"
-                        }`}
-                      >
-                        <Moon className="w-3.5 h-3.5 text-blue-400" />
-                        Deep Dark
-                      </button>
-                      <button
-                        onClick={() => setTheme("light")}
-                        className={`py-3 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                          theme === "light"
-                            ? "bg-neutral-950 text-white dark:bg-white dark:text-black shadow-lg"
-                            : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5"
-                        }`}
-                      >
-                        <Sun className="w-3.5 h-3.5 text-amber-500" />
-                        Pure Light
-                      </button>
-                    </div>
                   </div>
 
                   {/* Account Security */}

@@ -18,62 +18,36 @@ export const metadata: Metadata = {
 export default async function DashboardPage() {
   const session = await auth();
 
-  let dbUser = null;
-  if (session?.user) {
-    const userId = await resolveUserId(session);
-    if (userId) {
-      dbUser = await prisma.user.findUnique({
-        where: { id: userId },
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  const userId = await resolveUserId(session);
+  if (!userId) {
+    redirect("/login");
+  }
+
+  const dbUser = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      suggestions: {
+        where: { status: "PENDING" },
+        orderBy: { priority: "desc" },
+      },
+      resumes: {
         include: {
-          suggestions: {
-            where: { status: "PENDING" },
-            orderBy: { priority: "desc" },
+          versions: {
+            where: { isMain: true },
+            take: 1,
           },
-          resumes: {
-            include: {
-              versions: {
-                where: { isMain: true },
-                take: 1,
-              },
-            },
-          },
-          githubData: true,
-        }
-      });
+        },
+      },
+      githubData: true,
     }
-  }
-
-  // Fallback for visual testing
-  if (!dbUser) {
-    dbUser = await prisma.user.findFirst({
-      include: {
-        suggestions: {
-          where: { status: "PENDING" },
-          orderBy: { priority: "desc" },
-        },
-        resumes: {
-          include: {
-            versions: {
-              where: { isMain: true },
-              take: 1,
-            },
-          },
-        },
-        githubData: true,
-      }
-    });
-  }
+  });
 
   if (!dbUser) {
-    dbUser = {
-      id: "mock-id",
-      name: "Test User",
-      email: "test@example.com",
-      image: null,
-      suggestions: [],
-      resumes: [],
-      githubData: null,
-    } as any;
+    redirect("/login");
   }
 
   const mainResume = dbUser.resumes[0];
@@ -96,7 +70,10 @@ export default async function DashboardPage() {
       <nav className="relative z-50 border-b border-[var(--sclade-card-border)] bg-[var(--sclade-nav-bg)] backdrop-blur-xl sticky top-0 transition-colors duration-200 px-8 py-5">
         <div className="w-full flex items-center justify-between">
           <div className="flex items-center gap-12">
-            <div className="logo scale-90 origin-left">
+            <Link
+              href="/"
+              className="logo scale-90 origin-left cursor-pointer hover:opacity-90 transition-opacity"
+            >
               <svg viewBox="0 0 32 32" className="logo-icon-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M7 6C7 4.34315 8.34315 3 10 3H19L25 9V26C25 27.6569 23.6569 29 22 29H10C8.34315 29 7 27.6569 7 26V6Z" className="logo-doc-body" />
                 <path d="M19 3V9H25L19 3Z" className="logo-doc-fold" />
@@ -108,7 +85,7 @@ export default async function DashboardPage() {
                 <div className="logo-wordmark">RESUMMIT</div>
                 <div className="logo-tagline">YOUR COMMITS. YOUR CAREER.</div>
               </div>
-            </div>
+            </Link>
             <div className="hidden md:flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest text-[var(--sclade-text-secondary)]">
                <Link href="/dashboard" className="text-[var(--sclade-text-primary)] border-b-2 border-blue-500 pb-1 -mb-[22px]">Dashboard</Link>
                <Link href="/editor" className="hover:text-[var(--sclade-text-primary)] transition-colors">Editor</Link>
