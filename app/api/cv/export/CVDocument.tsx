@@ -28,6 +28,29 @@ const getDynamicStyles = (score: number) => {
   let fontSizeName = 22;
 
   if (score > 54) {
+    // Super Dense
+    fontSizeBody = 7.2;
+    fontSizeSecTitle = 8;
+    fontSizeSummary = 7.6;
+    fontSizeEntryHeader = 8;
+    fontSizeSub = 7.6;
+    fontSizePeriod = 7.2;
+    fontSizeName = 16.5;
+    
+    lineHeightBody = 1.1;
+    lineHeightSummary = 1.1;
+    lineHeightSkills = 1.15;
+    
+    paddingHorizontal = 24; // 8.5mm
+    paddingVertical = 14; // 5mm
+    marginHeader = 3;
+    marginSection = 3;
+    sectionTitlePaddingTop = 1;
+    sectionTitleMarginBottom = 1.5;
+    entryGap = 2;
+    bulletMarginBottom = 0.2;
+    skillLineMarginBottom = 0.2;
+  } else if (score > 46) {
     // Very Dense
     fontSizeBody = 7.6;
     fontSizeSecTitle = 8.5;
@@ -50,7 +73,7 @@ const getDynamicStyles = (score: number) => {
     entryGap = 3;
     bulletMarginBottom = 0.5;
     skillLineMarginBottom = 0.5;
-  } else if (score > 43) {
+  } else if (score > 36) {
     // Dense
     fontSizeBody = 8;
     fontSizeSecTitle = 9;

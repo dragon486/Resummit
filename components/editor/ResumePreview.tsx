@@ -171,6 +171,7 @@ function FormalTemplate({
   let fontSizeEntryHeader = "9.5pt";
   let fontSizeSub = "9pt";
   let fontSizePeriod = "8.5pt";
+  let fontSizeName = "22pt";
   
   let lineHeightBody = 1.4;
   let lineHeightSummary = 1.4;
@@ -186,6 +187,28 @@ function FormalTemplate({
   let skillLineMarginBottom = "1px";
 
   if (score > 54) {
+    // Super Dense
+    fontSizeBody = "7.2pt";
+    fontSizeSecTitle = "8pt";
+    fontSizeSummary = "7.6pt";
+    fontSizeEntryHeader = "8pt";
+    fontSizeSub = "7.6pt";
+    fontSizePeriod = "7.2pt";
+    fontSizeName = "16.5pt";
+    
+    lineHeightBody = 1.1;
+    lineHeightSummary = 1.1;
+    lineHeightSkills = 1.15;
+    
+    paddingPage = "5mm 8.5mm";
+    marginHeader = "3px";
+    marginSection = "3px";
+    sectionTitlePaddingTop = "1px";
+    sectionTitleMarginBottom = "1.5px";
+    entryGap = "2px";
+    bulletMarginBottom = "0.2px";
+    skillLineMarginBottom = "0.2px";
+  } else if (score > 46) {
     // Very Dense
     fontSizeBody = "7.6pt";
     fontSizeSecTitle = "8.5pt";
@@ -193,6 +216,7 @@ function FormalTemplate({
     fontSizeEntryHeader = "8.5pt";
     fontSizeSub = "8pt";
     fontSizePeriod = "7.6pt";
+    fontSizeName = "18pt";
     
     lineHeightBody = 1.2;
     lineHeightSummary = 1.2;
@@ -206,7 +230,7 @@ function FormalTemplate({
     entryGap = "3px";
     bulletMarginBottom = "0.5px";
     skillLineMarginBottom = "0.5px";
-  } else if (score > 43) {
+  } else if (score > 36) {
     // Dense
     fontSizeBody = "8pt";
     fontSizeSecTitle = "9pt";
@@ -214,6 +238,7 @@ function FormalTemplate({
     fontSizeEntryHeader = "9pt";
     fontSizeSub = "8.5pt";
     fontSizePeriod = "8pt";
+    fontSizeName = "20pt";
     
     lineHeightBody = 1.3;
     lineHeightSummary = 1.3;
@@ -243,7 +268,7 @@ function FormalTemplate({
       <header style={{ textAlign: "center", marginBottom: marginHeader }}>
         <div
           style={{
-            fontSize: score > 48 ? "18pt" : (score > 35 ? "20pt" : "22pt"),
+            fontSize: fontSizeName,
             fontWeight: "bold",
             color: "#1a202c",
             lineHeight: 1.1,
