@@ -342,6 +342,7 @@ export function LandingClient({ hasSession }: { hasSession?: boolean }) {
           display: flex;
           align-items: center;
           padding-top: 100px;
+          padding-bottom: 100px;
           position: relative;
           overflow: hidden;
         }
