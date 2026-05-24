@@ -63,7 +63,7 @@ flowchart TD
     
     H[Editor Workspace] -->|Accept suggestion| I[Import Project & Skills]
     I -->|User edits fields| J[Debounced 2s Auto-Save]
-    J -->|Real-time Rendering| K[@react-pdf/renderer Preview]
+    J -->|Real-time Rendering| K["@react-pdf/renderer Preview"]
     J -->|Trigger ATS Audit| L[Run API cv/ats-score]
     L -->|Display Audit Results| M[ATS Score & Weak Signals Modal]
     K -->|One-click Export| N[Download ATS-Scannable PDF]
@@ -81,7 +81,7 @@ erDiagram
     User ||--|| GitHubData : has
     User ||--o{ Suggestion : has
     Resume ||--o{ ResumeVersion : contains
-    ResumeVersion ||--o? JobTarget : targets
+    ResumeVersion }o--|o JobTarget : targets
 ```
 
 * **`User`**: Core user profiles tracking linked social accounts, active roles, and general experience levels.
