@@ -1,10 +1,16 @@
 export const SKILL_CATEGORIES: Record<string, "languages" | "frameworks" | "tools"> = {
+  // Languages
   "JavaScript": "languages", "TypeScript": "languages", "Python": "languages",
   "Java": "languages", "C++": "languages", "C": "languages", "Go": "languages",
   "Kotlin": "languages", "Swift": "languages", "Dart": "languages",
   "Ruby": "languages", "PHP": "languages", "Scala": "languages",
   "HTML/CSS": "languages", "Shell": "languages", "Bash": "languages",
+  "Rust": "languages", "C#": "languages", "SQL": "languages", "R": "languages",
+  "Perl": "languages", "Haskell": "languages", "Solidity": "languages",
+  "Objective-C": "languages", "MATLAB": "languages", "Jupyter Notebook": "languages",
+  "PowerShell": "languages", "Assembly": "languages",
 
+  // Frameworks
   "React": "frameworks", "Next.js": "frameworks", "Node.js": "frameworks",
   "Express.js": "frameworks", "Flask": "frameworks", "FastAPI": "frameworks",
   "Django": "frameworks", "TensorFlow": "frameworks", "PyTorch": "frameworks",
@@ -12,7 +18,13 @@ export const SKILL_CATEGORIES: Record<string, "languages" | "frameworks" | "tool
   "Tailwind CSS": "frameworks", "Prisma": "frameworks", "Vue.js": "frameworks",
   "Angular": "frameworks", "Spring Boot": "frameworks", "Ruby on Rails": "frameworks",
   "Flutter": "frameworks", "React Native": "frameworks",
+  "Nuxt.js": "frameworks", "Svelte": "frameworks", "SvelteKit": "frameworks",
+  "Bootstrap": "frameworks", "Sass": "frameworks", "jQuery": "frameworks",
+  "Redux": "frameworks", "Apollo": "frameworks", "NestJS": "frameworks",
+  "Sequelize": "frameworks", "Mongoose": "frameworks", "TypeORM": "frameworks",
+  "scikit-learn": "frameworks", "NumPy": "frameworks", "Pandas": "frameworks",
 
+  // Tools & DB
   "PostgreSQL": "tools", "MongoDB": "tools", "MySQL": "tools", "Redis": "tools",
   "Firebase": "tools", "Supabase": "tools", "AWS": "tools", "GCP": "tools",
   "Azure": "tools", "Docker": "tools", "Kubernetes": "tools", "GraphQL": "tools",
@@ -20,6 +32,15 @@ export const SKILL_CATEGORIES: Record<string, "languages" | "frameworks" | "tool
   "Apache Kafka": "tools", "Apache Airflow": "tools", "Apache Spark": "tools",
   "Elasticsearch": "tools", "Prometheus": "tools", "Grafana": "tools",
   "Selenium": "tools", "Playwright": "tools", "Jest": "tools",
+  "Vercel": "tools", "Netlify": "tools", "Heroku": "tools",
+  "SQLite": "tools", "MariaDB": "tools", "DynamoDB": "tools",
+  "Neo4j": "tools", "Nginx": "tools", "Apache": "tools",
+  "Webpack": "tools", "Vite": "tools", "npm": "tools",
+  "Yarn": "tools", "pnpm": "tools", "ESLint": "tools",
+  "Prettier": "tools", "Mocha": "tools", "Cypress": "tools",
+  "CI/CD": "tools", "GitHub Actions": "tools", "CircleCI": "tools",
+  "Travis CI": "tools", "Linux": "tools", "Unix": "tools",
+  "macOS": "tools", "Windows": "tools", "Postman": "tools",
 };
 
 export function normalizeAndDedupeSkills(skills: any) {

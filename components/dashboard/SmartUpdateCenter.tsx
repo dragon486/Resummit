@@ -642,7 +642,7 @@ export function SmartUpdateCenter({
                     {reviewing.type === 'ADD_SKILL' && (
                       <div className="space-y-4">
                         {Object.entries(JSON.parse(reviewing.proposedData)).map(([cat, skills]: [string, any]) => (
-                          skills.length > 0 && (
+                          Array.isArray(skills) && skills.length > 0 && (
                             <div key={cat}>
                               <p className="text-[9px] font-bold text-[var(--sclade-text-secondary)] uppercase mb-2">{cat}</p>
                               <div className="flex flex-wrap gap-2">

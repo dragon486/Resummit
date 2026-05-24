@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import { Download, Plus, Trash2, RotateCcw, Link as LinkIcon, CheckCircle2, Activity, Eye, Sparkles, Target, X, Loader2, User, Briefcase, Code2, GraduationCap, Zap, AlertTriangle, ChevronDown, ChevronUp, Save, Wifi, WifiOff, ArrowUp, ArrowDown, ExternalLink, Rocket, Cpu, Code, Terminal, GitBranch, Lock, Sun, Moon } from "lucide-react";
+import { Download, Plus, Trash2, RotateCcw, Link as LinkIcon, CheckCircle2, Activity, Eye, Sparkles, Target, X, Loader2, User, Briefcase, Code2, GraduationCap, Zap, AlertTriangle, ChevronDown, ChevronUp, Save, Wifi, WifiOff, ArrowUp, ArrowDown, ExternalLink, Rocket, Cpu, Code, Terminal, GitBranch, Lock, Sun, Moon, RefreshCw } from "lucide-react";
 import type { CVData, ProjectData, CVSkills, CVExperience, CVEducation, SaveStatus, EditorTab } from "@/lib/types";
 import { ResumePreview } from "@/components/editor/ResumePreview";
 import { normalizeAndDedupeSkills } from "@/lib/skills-data";
@@ -414,6 +414,7 @@ export function EditorClient({
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [atsData, setAtsData] = useState<any>(null);
   const [atsError, setAtsError] = useState<string | null>(null);
+  const [isScoring, setIsScoring] = useState(false);
   const [atsPanelOpen, setAtsPanelOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isTailoring, setIsTailoring] = useState(false);
@@ -594,19 +595,33 @@ export function EditorClient({
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [saveCV]);
 
+  // ── Load ATS score callback ──
+  const loadATS = useCallback(async () => {
+    setIsScoring(true);
+    setAtsError(null);
+    try {
+      const r = await fetch(`/api/cv/ats-score?versionId=${versionId}`);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const d = await r.json();
+      if (d.error) {
+        setAtsError(d.error);
+        setAtsData(null);
+      } else {
+        setAtsData(d);
+        setAtsError(null);
+      }
+    } catch (e: any) {
+      setAtsError(e.message || "Failed to analyze resume");
+      setAtsData(null);
+    } finally {
+      setIsScoring(false);
+    }
+  }, [versionId]);
+
   // ── Load ATS score on mount ──
   useEffect(() => {
-    fetch(`/api/cv/ats-score?versionId=${versionId}`)
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((d) => {
-        if (d.error) setAtsError(d.error);
-        else setAtsData(d);
-      })
-      .catch((e) => setAtsError(e.message));
-  }, []);
+    loadATS();
+  }, [loadATS]);
 
   // Save immediately when switching tabs if there is a pending save
   useEffect(() => {
@@ -1981,21 +1996,43 @@ export function EditorClient({
         {/* Global Action Bar */}
         <div className="px-6 py-4 border-b border-[var(--sclade-popover-border)] flex flex-col gap-4 bg-[var(--sclade-glass-tint)]">
             <div className="flex items-center justify-between">
-               {atsData ? (
-                 <button
-                   onClick={() => setAtsPanelOpen(true)}
-                   className={`px-3 py-1.5 rounded-xl border transition-all hover:scale-105 active:scale-95 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest ${
-                     atsData.score >= 70
-                       ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.1)]"
-                       : "bg-amber-500/10 text-amber-400 border-amber-500/20 shadow-[0_0_20px_rgba(245,158,11,0.1)]"
-                   }`}
-                 >
-                   <Target className="w-3 h-3" />
-                   {atsData.score} Score
-                 </button>
+               {atsData && !isScoring ? (
+                 <div className="flex items-center gap-2">
+                   <button
+                     onClick={() => setAtsPanelOpen(true)}
+                     className={`px-3 py-1.5 rounded-xl border transition-all hover:scale-105 active:scale-95 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest ${
+                       atsData.score >= 70
+                         ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.1)]"
+                         : "bg-amber-500/10 text-amber-400 border-amber-500/20 shadow-[0_0_20px_rgba(245,158,11,0.1)]"
+                     }`}
+                   >
+                     <Target className="w-3 h-3" />
+                     {atsData.score} Score
+                   </button>
+                   <button
+                     onClick={loadATS}
+                     title="Recalculate ATS score"
+                     className="p-1.5 rounded-xl bg-white/5 border border-white/5 text-neutral-400 hover:text-white transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                   >
+                     <RefreshCw className="w-3 h-3" />
+                   </button>
+                 </div>
+               ) : atsError && !isScoring ? (
+                 <div className="flex items-center gap-2">
+                   <button
+                     onClick={loadATS}
+                     className="px-3 py-1.5 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 hover:scale-105 active:scale-95 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest transition-all"
+                   >
+                     <AlertTriangle className="w-3 h-3" />
+                     Retry Scoring
+                   </button>
+                   <span className="text-[10px] text-red-400/80 font-medium truncate max-w-[120px] ml-1" title={atsError}>
+                     {atsError}
+                   </span>
+                 </div>
                ) : (
-                 <div className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/5 text-neutral-600 text-[9px] font-black uppercase animate-pulse flex items-center gap-2">
-                   <Loader2 className="w-3 h-3 animate-spin" /> Scoring
+                 <div className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/5 text-neutral-400 text-[9px] font-black uppercase animate-pulse flex items-center gap-2">
+                   <Loader2 className="w-3 h-3 animate-spin" /> Scoring...
                  </div>
                )}
 

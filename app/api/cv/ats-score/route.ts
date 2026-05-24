@@ -39,12 +39,36 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "No resume version found" }, { status: 404 });
     }
 
-    const personalInfo: any = version.personalInfo || {};
-    const skills: any = version.skills || {};
-    const experience: any = version.experience || [];
-    const education: any = version.education || [];
-    const projects: any = version.projects || [];
-    const achievements: any = version.achievements || [];
+    const ensureObject = (val: any): any => {
+      if (typeof val === "object" && val !== null && !Array.isArray(val)) return val;
+      if (typeof val === "string") {
+        try {
+          const parsed = JSON.parse(val);
+          if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) return parsed;
+        } catch {}
+      }
+      return {};
+    };
+
+    const ensureArray = (val: any): any[] => {
+      if (Array.isArray(val)) return val;
+      if (typeof val === "string") {
+        try {
+          const parsed = JSON.parse(val);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          return [];
+        }
+      }
+      return [];
+    };
+
+    const personalInfo = ensureObject(version.personalInfo);
+    const skills = ensureObject(version.skills);
+    const experience = ensureArray(version.experience);
+    const education = ensureArray(version.education);
+    const projects = ensureArray(version.projects);
+    const achievements = ensureArray(version.achievements);
 
     const cvText = `
 Name: ${personalInfo.name || "Anonymous"}
@@ -54,7 +78,7 @@ Summary: ${version.summary || "No summary provided."}
 Skills:
 Languages: ${(skills.languages || []).join(", ")}
 Frameworks: ${(skills.frameworks || []).join(", ")}
-Tools: ${(skills.tools || []).join(", ")}x
+Tools: ${(skills.tools || []).join(", ")}
 
 Experience:
 ${experience.map((e: any) => `${e.company || 'Company'} (${e.title || 'Role'}): ${e.period || 'Period'}\n- ${(e.bullets || []).join("\n- ")}`).join("\n\n")}
@@ -63,10 +87,10 @@ Education:
 ${education.map((e: any) => `${e.school || 'School'} (${e.degree || 'Degree'}): ${e.year || 'Year'}`).join("\n\n")}
 
 Projects:
-${projects.map((p: any) => `${p.title || p.name || 'Untitled'} (${p.techStack || 'Unspecified'})\n- ${(p.highlights || p.bullets || []).join("\n- ")}`).join("\n\n")}
+${projects.map((p: any) => `${p.title || p.name || 'Untitled'} (${Array.isArray(p.techStack) ? p.techStack.join(', ') : (p.techStack || 'Unspecified')})\n- ${(p.highlights || p.bullets || []).join("\n- ")}`).join("\n\n")}
 
 Achievements:
-${achievements.filter((a: string) => a.trim()).map((ach: string) => `- ${ach}`).join("\n")}
+${achievements.filter((a: any) => typeof a === "string" && a.trim()).map((ach: string) => `- ${ach}`).join("\n")}
     `;
 
     const payload = { 

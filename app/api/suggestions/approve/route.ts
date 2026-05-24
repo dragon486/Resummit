@@ -29,7 +29,16 @@ export async function POST(req: Request) {
     if (!mainVersion) return NextResponse.json({ error: "Main resume version not found" }, { status: 400 });
 
     const proposed = typeof suggestion.proposedData === 'string' ? JSON.parse(suggestion.proposedData) : suggestion.proposedData;
-    const currentProjects = Array.isArray(mainVersion.projects) ? mainVersion.projects : [];
+    
+    let currentProjects: any[] = [];
+    if (Array.isArray(mainVersion.projects)) {
+      currentProjects = mainVersion.projects;
+    } else if (typeof mainVersion.projects === 'string') {
+      try {
+        const parsed = JSON.parse(mainVersion.projects);
+        if (Array.isArray(parsed)) currentProjects = parsed;
+      } catch {}
+    }
 
     let updatedProjects = [...currentProjects];
 
@@ -61,7 +70,18 @@ export async function POST(req: Request) {
           : p
       );
     } else if (suggestion.type === "ADD_SKILL") {
-      const currentSkills = (mainVersion.skills as any) || { languages: [], frameworks: [], tools: [] };
+      let currentSkills = { languages: [], frameworks: [], tools: [] };
+      if (typeof mainVersion.skills === 'object' && mainVersion.skills !== null && !Array.isArray(mainVersion.skills)) {
+        currentSkills = mainVersion.skills as any;
+      } else if (typeof mainVersion.skills === 'string') {
+        try {
+          const parsed = JSON.parse(mainVersion.skills);
+          if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+            currentSkills = parsed;
+          }
+        } catch {}
+      }
+
       const newSkills = proposed;
       
       const merge = (current: string[], proposed: string[]) => {

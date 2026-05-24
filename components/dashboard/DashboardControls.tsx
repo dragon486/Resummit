@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Bell, Settings, User, X, Check, Shield, Cpu, RefreshCw, Moon, Sparkles, Sun } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -54,6 +55,11 @@ export function DashboardControls({ user }: DashboardControlsProps) {
   const [aiModel, setAiModel] = useState("gemini");
   const [autoSync, setAutoSync] = useState(true);
   const [theme, setTheme] = useState("dark");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("sclade-theme");
@@ -241,14 +247,14 @@ export function DashboardControls({ user }: DashboardControlsProps) {
 
       {/* Settings Side-Drawer */}
       <AnimatePresence>
-        {showSettings && (
+        {showSettings && mounted && createPortal(
           <>
             {/* Backdrop Blur Overlay */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.5 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 cursor-pointer"
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] cursor-pointer"
               onClick={() => setShowSettings(false)}
             />
 
@@ -258,7 +264,7 @@ export function DashboardControls({ user }: DashboardControlsProps) {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-[var(--sclade-popover-bg)] border-l border-[var(--sclade-popover-border)] backdrop-blur-2xl shadow-2xl z-50 p-8 flex flex-col justify-between text-[var(--sclade-text-primary)]"
+              className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-[var(--sclade-popover-bg)] border-l border-[var(--sclade-popover-border)] backdrop-blur-2xl shadow-2xl z-[10000] p-8 flex flex-col justify-between text-[var(--sclade-text-primary)]"
             >
               <div>
                 {/* Header */}
@@ -372,7 +378,8 @@ export function DashboardControls({ user }: DashboardControlsProps) {
                 </button>
               </div>
             </motion.div>
-          </>
+          </>,
+          document.body
         )}
       </AnimatePresence>
 

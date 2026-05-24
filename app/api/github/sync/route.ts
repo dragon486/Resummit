@@ -13,7 +13,12 @@ export async function GET(req: Request) {
     if (!userId) return NextResponse.json({ error: "User not found" }, { status: 401 });
     const githubData = await prisma.gitHubData.findUnique({ where: { userId } });
     const token = (session.user as any).accessToken || githubData?.accessToken;
-    if (!token) return NextResponse.json({ error: "No token" }, { status: 400 });
+    if (!token) {
+      return NextResponse.json(
+        { error: "No GitHub connection found. Please sign out and sign in using your GitHub account to enable synchronization." },
+        { status: 400 }
+      );
+    }
     const result = await runSmartSync(userId, token, session.user.email || undefined);
     return NextResponse.json({ success: true, result });
   } catch (error: any) {

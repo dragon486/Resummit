@@ -2,8 +2,9 @@ import { auth } from "@/auth";
 import { prisma, resolveUserId } from "@/lib/server/prisma";
 import { NextResponse } from "next/server";
 import { suggestSkillsFromGitHub } from "@/lib/aiService";
-import { extractDeterministicSkills } from "@/lib/github";
+import { extractDeterministicSkills, fetchUserRepos, discoverSkillsFromGitHubCodebases } from "@/lib/github";
 import { SKILL_CATEGORIES } from "@/lib/skills-data";
+import { runSmartSync } from "@/lib/suggestionEngine";
 import { z } from "zod";
 
 export const runtime = "nodejs";
@@ -31,16 +32,47 @@ export async function POST(req: Request) {
       select: { repositories: true, accessToken: true }
     });
 
-    const repos: any[] = Array.isArray(githubData?.repositories) ? githubData.repositories : [];
+    const token = (session?.user as any)?.accessToken || githubData?.accessToken;
+    let repos: any[] = [];
+    
+    if (token) {
+      try {
+        console.log("[SKILLS] Fetching fresh repositories dynamically from GitHub API (including practice/tutorials)...");
+        repos = await fetchUserRepos(token, true);
+        
+        // Asynchronously update the cache database in the background so other features benefit
+        prisma.gitHubData.upsert({
+          where: { userId },
+          update: { repositories: repos.slice(0, 50) as any, lastSyncedAt: new Date() },
+          create: { userId, repositories: repos.slice(0, 50) as any, lastSyncedAt: new Date() }
+        }).catch((e: any) => console.error("[SKILLS] Background database cache sync failed:", e));
+      } catch (err) {
+        console.error("[SKILLS] Failed to retrieve dynamic GitHub repositories, falling back to database cache:", err);
+        repos = Array.isArray(githubData?.repositories) ? githubData.repositories : [];
+      }
+    } else {
+      repos = Array.isArray(githubData?.repositories) ? githubData.repositories : [];
+    }
 
     // Step 1: Deterministic extraction from repo metadata (language + topics)
     const deterministic = extractDeterministicSkills(repos);
 
+    // Step 1b: Deep scan repository codebases (package.json, requirements.txt) dynamically in parallel!
+    let codebaseSkills: { languages: string[]; frameworks: string[]; tools: string[] } = { languages: [], frameworks: [], tools: [] };
+    if (token) {
+      try {
+        console.log("[SKILLS] Scanning top codebases dynamically for package/library dependencies...");
+        codebaseSkills = await discoverSkillsFromGitHubCodebases(token, repos);
+      } catch (err) {
+        console.error("[SKILLS] Codebase dependency discovery scan failed:", err);
+      }
+    }
+
     // Lower the frequency bar for READMEs — a skill appearing in 1 repo with a README counts
     const readmeSkills = extractSkillsFromReadmes(repos);
 
-    // Merge deterministic + readme results
-    const mergedDeterministic = mergeSkillSets([deterministic, readmeSkills]);
+    // Merge metadata, codebase, and readme results!
+    const mergedDeterministic = mergeSkillSets([deterministic, codebaseSkills, readmeSkills]);
 
     // Step 2: AI enhancement — pass rich repo context for deeper extraction
     const repoContext = repos.slice(0, 20).map((r: any) => ({
@@ -51,7 +83,12 @@ export async function POST(req: Request) {
       readme: (r.readme || "").slice(0, 800), // cap per-repo readme
     }));
 
-    const aiSuggested = await suggestSkillsFromGitHub(repoContext, projects, existing);
+    let aiSuggested: { languages: string[]; frameworks: string[]; tools: string[] } = { languages: [], frameworks: [], tools: [] };
+    try {
+      aiSuggested = await suggestSkillsFromGitHub(repoContext, projects, existing);
+    } catch (aiErr) {
+      console.warn("[SKILLS] AI suggestion failed (probably quota exceeded), falling back to deterministic extraction:", aiErr);
+    }
 
     // Step 3: Merge everything, deduplicating case-insensitively
     const final = mergeSkillSets([mergedDeterministic, aiSuggested], existing);

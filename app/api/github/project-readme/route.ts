@@ -93,8 +93,22 @@ Rules:
   ]
 }`;
 
-    const aiResponse = await callAI(prompt);
-    const result = safeParseJSON(aiResponse);
+    let result: any = {};
+    try {
+      const aiResponse = await callAI(prompt);
+      result = safeParseJSON(aiResponse);
+    } catch (e) {
+      console.warn("[PROJECT-README] AI processing failed. Falling back to deterministic project generation.", e);
+      const language = Array.isArray(techStack) && techStack.length > 0 ? techStack[0] : "TypeScript";
+      const techList = Array.isArray(techStack) && techStack.length > 0 ? techStack.slice(0, 3) : ["Node.js", "Git"];
+      result = {
+        description: `High-performance modular project developed using ${language} to streamline core application logic.`,
+        highlights: [
+          `Engineered ${repoName} utilizing ${language} to enhance system throughput and resolve data processing latency.`,
+          `Integrated ${techList.join(', ')} architectures to automate integration checks and optimize deployment workflows.`
+        ]
+      };
+    }
 
     return NextResponse.json({
       success: true,

@@ -1,5 +1,5 @@
 import { prisma } from "./server/prisma";
-import { fetchUserRepos, fetchRepoReadme, GithubRepo } from "./github";
+import { fetchUserRepos, fetchRepoReadme, GithubRepo, SKILL_MAP, SKILL_CATEGORIES, isJunkRepo } from "./github";
 import { generateBatchBullets } from "./aiService";
 
 export interface SuggestionScoring {
@@ -141,7 +141,7 @@ export async function runSmartSync(userId: string, accessToken: string, email?: 
   });
 
   // 3. Fetch and Score Repos
-  const repos = await fetchUserRepos(accessToken);
+  const repos = await fetchUserRepos(accessToken, true);
   const now = new Date();
   const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
 
@@ -182,6 +182,7 @@ export async function runSmartSync(userId: string, accessToken: string, email?: 
   } catch { /* ignore */ }
 
   for (const repo of sortedMeaningfulRepos) {
+    if (isJunkRepo(repo)) continue;
     // Only skip if there is a PENDING suggestion already
     const existingPending = user.suggestions.find((s: any) => 
       s.status === "PENDING" && s.title.toLowerCase().includes(repo.name.toLowerCase())
@@ -230,49 +231,57 @@ export async function runSmartSync(userId: string, accessToken: string, email?: 
     const ownerLogin = suggestion._ownerLogin || "";
     
     try {
-      let projectData: any;
-      let filteredSkills: { languages: string[]; frameworks: string[]; tools: string[] };
+      let projectData: any = null;
+      let filteredSkills: { languages: string[]; frameworks: string[]; tools: string[] } = { languages: [], frameworks: [], tools: [] };
+      let useDeterministic = idx >= 3;
 
-      if (idx < 3) {
-        // Fetch README to enrich AI context (best-effort, non-blocking)
-        let readme = "";
-        if (ownerLogin && repo.name) {
-          readme = await fetchRepoReadme(accessToken, ownerLogin, repo.name);
+      if (!useDeterministic) {
+        try {
+          // Fetch README to enrich AI context (best-effort, non-blocking)
+          let readme = "";
+          if (ownerLogin && repo.name) {
+            readme = await fetchRepoReadme(accessToken, ownerLogin, repo.name);
+          }
+
+          const aiResult = await generateBatchBullets([{
+            name: repo.name,
+            description: repo.description || "",
+            language: repo.language || "Software Engineering",
+            readme, // ← inject README
+            topics: repo.topics || [],
+            stars: repo.stargazers_count || 0,
+          }]);
+
+          projectData = aiResult.projects[0];
+
+          // Skill Filter
+          filteredSkills = {
+            languages: aiResult.skills.languages.filter((l: string) => 
+              !allCurrentSkills.includes(l.toLowerCase()) && 
+              !skillsFoundInThisScan.has(l.toLowerCase()) &&
+              l.length > 1 &&
+              isRealSkill(l, repo.name)
+            ),
+            frameworks: aiResult.skills.frameworks.filter((f: string) => 
+              !allCurrentSkills.includes(f.toLowerCase()) && 
+              !skillsFoundInThisScan.has(f.toLowerCase()) &&
+              f.length > 2 &&
+              isRealSkill(f, repo.name)
+            ),
+            tools: aiResult.skills.tools.filter((t: string) => 
+              !allCurrentSkills.includes(t.toLowerCase()) && 
+              !skillsFoundInThisScan.has(t.toLowerCase()) &&
+              !["Git", "GitHub", "Programming", "Software"].includes(t) &&
+              isRealSkill(t, repo.name)
+            )
+          };
+        } catch (aiErr) {
+          console.warn(`[SYNC] AI generation failed for ${repo.name}, falling back to deterministic:`, aiErr);
+          useDeterministic = true;
         }
+      }
 
-        const aiResult = await generateBatchBullets([{
-          name: repo.name,
-          description: repo.description || "",
-          language: repo.language || "Software Engineering",
-          readme, // ← inject README
-          topics: repo.topics || [],
-          stars: repo.stargazers_count || 0,
-        }]);
-
-        projectData = aiResult.projects[0];
-
-        // Skill Filter
-        filteredSkills = {
-          languages: aiResult.skills.languages.filter((l: string) => 
-            !allCurrentSkills.includes(l.toLowerCase()) && 
-            !skillsFoundInThisScan.has(l.toLowerCase()) &&
-            l.length > 1 &&
-            isRealSkill(l, repo.name)
-          ),
-          frameworks: aiResult.skills.frameworks.filter((f: string) => 
-            !allCurrentSkills.includes(f.toLowerCase()) && 
-            !skillsFoundInThisScan.has(f.toLowerCase()) &&
-            f.length > 2 &&
-            isRealSkill(f, repo.name)
-          ),
-          tools: aiResult.skills.tools.filter((t: string) => 
-            !allCurrentSkills.includes(t.toLowerCase()) && 
-            !skillsFoundInThisScan.has(t.toLowerCase()) &&
-            !["Git", "GitHub", "Programming", "Software"].includes(t) &&
-            isRealSkill(t, repo.name)
-          )
-        };
-      } else {
+      if (useDeterministic) {
         // Generate deterministically for positions 4-30 (eliminates LLM overhead completely)
         const language = repo.language || "TypeScript";
         const techStack = Array.isArray(repo.topics) && repo.topics.length > 0 
@@ -294,19 +303,52 @@ export async function runSmartSync(userId: string, accessToken: string, email?: 
           aiGenerated: false
         };
 
+        const repoSkills: Record<string, string[]> = { languages: [], frameworks: [], tools: [] };
+        
+        // 1. Language skill
+        if (repo.language) {
+          const mapped = SKILL_MAP[repo.language.toLowerCase()];
+          if (mapped) {
+            const cat = SKILL_CATEGORIES[mapped] || "languages";
+            if (!repoSkills[cat].includes(mapped)) {
+              repoSkills[cat].push(mapped);
+            }
+          } else {
+            // Unmapped language
+            if (!repoSkills.languages.includes(repo.language)) {
+              repoSkills.languages.push(repo.language);
+            }
+          }
+        }
+        
+        // 2. Topics skills
+        if (Array.isArray(repo.topics)) {
+          for (const topic of repo.topics) {
+            const mapped = SKILL_MAP[topic.toLowerCase()];
+            if (mapped) {
+              const cat = SKILL_CATEGORIES[mapped] || "tools";
+              if (!repoSkills[cat].includes(mapped)) {
+                repoSkills[cat].push(mapped);
+              }
+            }
+          }
+        }
+        
         filteredSkills = {
-          languages: language && !allCurrentSkills.includes(language.toLowerCase()) && !skillsFoundInThisScan.has(language.toLowerCase()) && isRealSkill(language, repo.name) ? [language] : [],
-          frameworks: (repo.topics || []).filter((t: string) => 
-            ["react", "nextjs", "nestjs", "express", "django", "vue"].includes(t.toLowerCase()) &&
-            !allCurrentSkills.includes(t.toLowerCase()) && 
-            !skillsFoundInThisScan.has(t.toLowerCase()) &&
-            isRealSkill(t, repo.name)
+          languages: repoSkills.languages.filter(s => 
+            !allCurrentSkills.includes(s.toLowerCase()) && 
+            !skillsFoundInThisScan.has(s.toLowerCase()) &&
+            isRealSkill(s, repo.name)
           ),
-          tools: (repo.topics || []).filter((t: string) => 
-            ["docker", "kubernetes", "aws", "gcp", "postgresql", "mongodb", "redis"].includes(t.toLowerCase()) &&
-            !allCurrentSkills.includes(t.toLowerCase()) && 
-            !skillsFoundInThisScan.has(t.toLowerCase()) &&
-            isRealSkill(t, repo.name)
+          frameworks: repoSkills.frameworks.filter(s => 
+            !allCurrentSkills.includes(s.toLowerCase()) && 
+            !skillsFoundInThisScan.has(s.toLowerCase()) &&
+            isRealSkill(s, repo.name)
+          ),
+          tools: repoSkills.tools.filter(s => 
+            !allCurrentSkills.includes(s.toLowerCase()) && 
+            !skillsFoundInThisScan.has(s.toLowerCase()) &&
+            isRealSkill(s, repo.name)
           )
         };
       }
