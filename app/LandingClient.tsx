@@ -873,6 +873,71 @@ export function LandingClient({ hasSession }: { hasSession?: boolean }) {
             padding-bottom: 70px;
           }
         }
+
+        @media (max-width: 500px) {
+          .landing-body .nav-inner {
+            height: 64px;
+          }
+
+          .landing-body .logo-icon-svg {
+            width: 28px !important;
+            height: 28px !important;
+          }
+
+          .landing-body .logo-wordmark {
+            font-size: 1.15rem !important;
+          }
+
+          .landing-body .logo-tagline {
+            display: none !important;
+          }
+
+          .landing-body .nav-actions {
+            gap: 8px !important;
+          }
+
+          .landing-body .nav-actions .primary-btn {
+            padding: 8px 14px !important;
+            font-size: 0.82rem !important;
+            border-radius: 12px !important;
+          }
+
+          .landing-body .nav-actions .logout-btn {
+            display: none !important;
+          }
+
+          .landing-body .theme-switch {
+            width: 48px !important;
+            height: 26px !important;
+            padding: 2px !important;
+          }
+
+          .landing-body .theme-switch-indicator {
+            width: 20px !important;
+            height: 20px !important;
+            top: 2px !important;
+            left: 2px !important;
+          }
+
+          .landing-body .theme-switch-icon {
+            width: 20px !important;
+            height: 20px !important;
+          }
+
+          .landing-body .hero-actions {
+            flex-direction: column;
+            gap: 12px !important;
+            width: 100%;
+          }
+
+          .landing-body .hero-actions .primary-btn,
+          .landing-body .hero-actions .secondary-btn {
+            width: 100% !important;
+            padding: 14px 20px !important;
+            font-size: 1rem !important;
+            border-radius: 16px !important;
+          }
+        }
       ` }} />
 
       <div className="landing-body">
