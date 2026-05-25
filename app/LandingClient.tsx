@@ -23,15 +23,33 @@ export function LandingClient({ hasSession }: { hasSession?: boolean }) {
     e.preventDefault();
     if (!feedbackName || !feedbackEmail || !feedbackMsg) return;
     setFeedbackSubmitting(true);
-    // Simulate a network call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setFeedbackSubmitting(false);
-    setFeedbackSubmitted(true);
-    // Clear inputs
-    setFeedbackName("");
-    setFeedbackEmail("");
-    setFeedbackRating(5);
-    setFeedbackMsg("");
+    try {
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: feedbackName,
+          email: feedbackEmail,
+          rating: feedbackRating,
+          message: feedbackMsg,
+        }),
+      });
+      if (res.ok) {
+        setFeedbackSubmitted(true);
+        // Clear inputs
+        setFeedbackName("");
+        setFeedbackEmail("");
+        setFeedbackRating(5);
+        setFeedbackMsg("");
+      } else {
+        alert("Failed to submit feedback. Please try again.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("An error occurred. Please try again.");
+    } finally {
+      setFeedbackSubmitting(false);
+    }
   };
   const resumeContainerRef = React.useRef<HTMLDivElement>(null);
 
