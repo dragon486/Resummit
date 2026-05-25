@@ -125,32 +125,7 @@ export function SmartUpdateCenter({
         currentList = [];
       }
     } else {
-      currentList = [
-        {
-          id: "1",
-          title: "GitHub Sync Successful",
-          desc: "Successfully parsed 12 repositories and README assets.",
-          time: "Just now",
-          read: false,
-          type: "success",
-        },
-        {
-          id: "2",
-          title: "ATS Resume Audit Complete",
-          desc: "Semantic intelligence score increased to 82/100.",
-          time: "10 mins ago",
-          read: false,
-          type: "info",
-        },
-        {
-          id: "3",
-          title: "Gemini Key Status Active",
-          desc: "Google generative developer endpoints verified.",
-          time: "1 hour ago",
-          read: true,
-          type: "success",
-        },
-      ];
+      currentList = [];
     }
     const newNotif = {
       id: Date.now().toString() + "-" + Math.random().toString(36).substring(2, 9),
