@@ -10,6 +10,29 @@ export function LandingClient({ hasSession }: { hasSession?: boolean }) {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [resumeScale, setResumeScale] = useState(1);
   const [isMounted, setIsMounted] = useState(false);
+
+  // Feedback Form State
+  const [feedbackName, setFeedbackName] = useState("");
+  const [feedbackEmail, setFeedbackEmail] = useState("");
+  const [feedbackRating, setFeedbackRating] = useState(5);
+  const [feedbackMsg, setFeedbackMsg] = useState("");
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+
+  const handleFeedbackSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!feedbackName || !feedbackEmail || !feedbackMsg) return;
+    setFeedbackSubmitting(true);
+    // Simulate a network call
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    setFeedbackSubmitting(false);
+    setFeedbackSubmitted(true);
+    // Clear inputs
+    setFeedbackName("");
+    setFeedbackEmail("");
+    setFeedbackRating(5);
+    setFeedbackMsg("");
+  };
   const resumeContainerRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -731,29 +754,39 @@ export function LandingClient({ hasSession }: { hasSession?: boolean }) {
         .landing-body .contact {
           background: linear-gradient(135deg, #111827, #1e293b);
           border-radius: 36px;
-          padding: 80px;
+          padding: 60px;
           border: 1px solid var(--border);
-          text-align: center;
+          text-align: left;
+          display: grid;
+          grid-template-columns: 1.1fr 0.9fr;
+          gap: 60px;
+          align-items: center;
+        }
+
+        .landing-body .contact-left {
+          display: flex;
+          flex-direction: column;
         }
 
         .landing-body .contact h2 {
-          font-size: clamp(2.8rem, 5vw, 5rem);
-          line-height: 0.92;
-          letter-spacing: -0.08em;
+          font-size: clamp(2.4rem, 4vw, 4rem);
+          line-height: 1.05;
+          letter-spacing: -0.06em;
           color: white;
           margin-bottom: 20px;
         }
 
         .landing-body .contact p {
-          max-width: 720px;
-          margin: auto;
+          max-width: 600px;
+          margin: 0;
           color: #cbd5e1;
           margin-bottom: 34px;
+          line-height: 1.6;
         }
 
         .landing-body .contact-links {
           display: flex;
-          justify-content: center;
+          justify-content: flex-start;
           gap: 16px;
           flex-wrap: wrap;
         }
@@ -761,15 +794,161 @@ export function LandingClient({ hasSession }: { hasSession?: boolean }) {
         .landing-body .contact-links a {
           padding: 14px 20px;
           border-radius: 16px;
-          background: white;
-          color: #0f172a;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          color: white;
           font-weight: 700;
           text-decoration: none;
           transition: 0.3s;
         }
 
         .landing-body .contact-links a:hover {
+          background: white;
+          color: #0f172a;
           transform: translateY(-2px);
+        }
+
+        /* Feedback Form Container */
+        .landing-body .feedback-form-container {
+          background: rgba(15, 23, 42, 0.4);
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          border-radius: 28px;
+          padding: 40px;
+          backdrop-filter: blur(16px);
+        }
+
+        .landing-body .feedback-form-container h3 {
+          font-size: 1.25rem;
+          color: white;
+          margin-bottom: 8px;
+          font-weight: 800;
+          letter-spacing: -0.02em;
+        }
+
+        .landing-body .feedback-form-container p {
+          font-size: 0.9rem;
+          color: var(--muted);
+          margin-bottom: 24px;
+          line-height: 1.5;
+        }
+
+        .landing-body .feedback-form-group {
+          margin-bottom: 18px;
+        }
+
+        .landing-body .feedback-form-group label {
+          display: block;
+          font-size: 0.75rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          color: var(--muted);
+          margin-bottom: 8px;
+        }
+
+        .landing-body .feedback-input {
+          width: 100%;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 14px;
+          padding: 12px 16px;
+          font-size: 0.88rem;
+          color: white;
+          outline: none;
+          transition: 0.25s ease;
+        }
+
+        .landing-body .feedback-input:focus {
+          border-color: var(--primary);
+          background: rgba(255, 255, 255, 0.06);
+        }
+
+        .landing-body .feedback-textarea {
+          resize: none;
+          height: 100px;
+        }
+
+        .landing-body .rating-buttons {
+          display: flex;
+          gap: 8px;
+        }
+
+        .landing-body .rating-btn {
+          width: 38px;
+          height: 38px;
+          border-radius: 10px;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          color: var(--muted);
+          font-size: 0.9rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: 0.25s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .landing-body .rating-btn:hover {
+          background: rgba(255, 255, 255, 0.08);
+          border-color: rgba(255, 255, 255, 0.2);
+          color: white;
+        }
+
+        .landing-body .rating-btn.active {
+          background: var(--primary);
+          border-color: var(--primary);
+          color: white;
+          box-shadow: 0 0 15px rgba(79, 140, 255, 0.4);
+        }
+
+        .landing-body .feedback-submit-btn {
+          width: 100%;
+          padding: 14px;
+          background: var(--primary);
+          border: none;
+          border-radius: 14px;
+          color: white;
+          font-weight: 700;
+          font-size: 0.88rem;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          cursor: pointer;
+          transition: 0.3s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+        }
+
+        .landing-body .feedback-submit-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 25px rgba(79, 140, 255, 0.3);
+        }
+
+        .landing-body .feedback-submit-btn:disabled {
+          background: rgba(255, 255, 255, 0.1);
+          color: var(--muted);
+          cursor: not-allowed;
+          transform: none;
+          box-shadow: none;
+        }
+
+        @media(max-width: 980px) {
+          .landing-body .contact {
+            grid-template-columns: 1fr;
+            gap: 40px;
+            padding: 40px 24px;
+            text-align: center;
+          }
+
+          .landing-body .contact-left {
+            align-items: center;
+          }
+
+          .landing-body .contact-links {
+            justify-content: center;
+          }
         }
 
         .landing-body footer {
@@ -1577,17 +1756,115 @@ export function LandingClient({ hasSession }: { hasSession?: boolean }) {
         <section className="section" id="contact">
           <div className="container">
             <div className="contact reveal">
-              <h2>
-                Built from your work.<br />
-                Not from templates.
-              </h2>
-              <p>
-                Resummit turns real engineering work into professional resumes developers can confidently share with recruiters and hiring teams. Designed, developed, and maintained by <strong>Adel Muhammed</strong>.
-              </p>
-              <div className="contact-links">
-                <a href="mailto:adelmuhammed786@gmail.com">Contact</a>
-                <a href="https://github.com/dragon486" target="_blank" rel="noopener noreferrer">GitHub</a>
-                <a href="https://www.linkedin.com/in/adel-muhammed-49136a282/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+              <div className="contact-left">
+                <h2>
+                  Built from your work.<br />
+                  Not from templates.
+                </h2>
+                <p>
+                  Resummit turns real engineering work into professional resumes developers can confidently share with recruiters and hiring teams. Designed, developed, and maintained by <strong>Adel Muhammed</strong>.
+                </p>
+                <div className="contact-links">
+                  <a href="mailto:adelmuhammed786@gmail.com">Contact Email</a>
+                  <a href="https://github.com/dragon486" target="_blank" rel="noopener noreferrer">GitHub Profile</a>
+                  <a href="https://www.linkedin.com/in/adel-muhammed-49136a282/" target="_blank" rel="noopener noreferrer">LinkedIn Profile</a>
+                </div>
+              </div>
+
+              {/* Sleek Interactive Feedback Form */}
+              <div className="feedback-form-container">
+                {feedbackSubmitted ? (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    style={{ textAlign: "center", padding: "20px 0" }}
+                  >
+                    <div style={{ width: "56px", height: "56px", borderRadius: "50%", background: "rgba(16, 185, 129, 0.1)", border: "1px solid rgba(16, 185, 129, 0.2)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px auto", color: "#10b981" }}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ width: "24px", height: "24px" }}>
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    </div>
+                    <h3 style={{ color: "white" }}>Thank you for your feedback!</h3>
+                    <p style={{ fontSize: "0.88rem", color: "var(--muted)", margin: "8px 0 20px 0" }}>Your inputs have been received and help us build a better workspace for engineers.</p>
+                    <button 
+                      onClick={() => setFeedbackSubmitted(false)}
+                      className="primary-btn"
+                      style={{ cursor: "pointer", width: "auto", display: "inline-flex", padding: "10px 20px", fontSize: "0.8rem", borderRadius: "12px", border: "none" }}
+                    >
+                      Submit Another Feedback
+                    </button>
+                  </motion.div>
+                ) : (
+                  <form onSubmit={handleFeedbackSubmit} className="space-y-4" style={{ display: "flex", flexDirection: "column" }}>
+                    <h3>Share Your Feedback</h3>
+                    <p>Help us improve your workspace experience. We review every message.</p>
+
+                    <div className="feedback-form-group">
+                      <label>Full Name</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={feedbackName}
+                        onChange={(e) => setFeedbackName(e.target.value)}
+                        placeholder="Adel Muhammed"
+                        className="feedback-input"
+                      />
+                    </div>
+
+                    <div className="feedback-form-group">
+                      <label>Email Address</label>
+                      <input 
+                        type="email" 
+                        required
+                        value={feedbackEmail}
+                        onChange={(e) => setFeedbackEmail(e.target.value)}
+                        placeholder="adelmuhammed786@gmail.com"
+                        className="feedback-input"
+                      />
+                    </div>
+
+                    <div className="feedback-form-group">
+                      <label>Workspace Rating</label>
+                      <div className="rating-buttons">
+                        {[1, 2, 3, 4, 5].map((val) => (
+                          <button
+                            key={val}
+                            type="button"
+                            onClick={() => setFeedbackRating(val)}
+                            className={`rating-btn ${feedbackRating === val ? "active" : ""}`}
+                          >
+                            {val}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="feedback-form-group">
+                      <label>Your Message</label>
+                      <textarea 
+                        required
+                        value={feedbackMsg}
+                        onChange={(e) => setFeedbackMsg(e.target.value)}
+                        placeholder="What features do you love? What should we build next?"
+                        className="feedback-input feedback-textarea"
+                      />
+                    </div>
+
+                    <button 
+                      type="submit" 
+                      disabled={feedbackSubmitting}
+                      className="feedback-submit-btn"
+                    >
+                      {feedbackSubmitting ? (
+                        <>Sending...</>
+                      ) : (
+                        <>
+                          Submit Feedback
+                        </>
+                      )}
+                    </button>
+                  </form>
+                )}
               </div>
             </div>
           </div>
