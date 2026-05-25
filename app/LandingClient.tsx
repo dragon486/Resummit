@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { GitBranch, Brain, FileDown, KeyRound, Terminal, Cpu, FileCheck } from "lucide-react";
+import { signOut } from "next-auth/react";
 import { motion } from "framer-motion";
 
 export function LandingClient({ hasSession }: { hasSession?: boolean }) {
@@ -1045,7 +1046,16 @@ export function LandingClient({ hasSession }: { hasSession?: boolean }) {
               {hasSession ? (
                 <>
                   <Link href="/dashboard" className="primary-btn">Go to Dashboard</Link>
-                  <Link href="/api/auth/signout" className="logout-btn">Sign Out</Link>
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      signOut({ callbackUrl: "/" });
+                    }}
+                    className="logout-btn"
+                  >
+                    Sign Out
+                  </a>
                 </>
               ) : (
                 <Link href="/login" className="primary-btn">Connect GitHub</Link>

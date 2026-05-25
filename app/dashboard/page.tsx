@@ -1,6 +1,6 @@
 import "server-only";
 import type { Metadata } from "next";
-import { auth } from "@/auth";
+import { auth, signOut } from "@/auth";
 import { prisma, resolveUserId } from "@/lib/server/prisma";
 import { redirect } from "next/navigation";
 import { LayoutDashboard, FileText, Settings, Rocket, ArrowRight, Bell, User, Cpu, Target, Zap, Shield, Sparkles, BarChart3, Activity } from "lucide-react";
@@ -263,10 +263,20 @@ export default async function DashboardPage() {
               </div>
 
               <div className="p-4">
-                 <Link href="/api/auth/signout" className="block w-full py-3 text-center text-red-500/60 hover:text-red-500 text-xs font-bold transition-all border border-red-500/10 rounded-2xl">
-                    Sign Out Terminal
-                 </Link>
-              </div>
+                <form
+                  action={async () => {
+                    "use server";
+                    await signOut({ redirectTo: "/" });
+                  }}
+                >
+                   <button
+                     type="submit"
+                     className="block w-full py-3 text-center text-red-500/60 hover:text-red-500 text-xs font-bold transition-all border border-red-500/10 rounded-2xl cursor-pointer bg-transparent"
+                   >
+                      Sign Out Terminal
+                   </button>
+                </form>
+             </div>
            </div>
 
         </div>
