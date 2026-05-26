@@ -407,6 +407,8 @@ export function EditorClient({
   const [achNote, setAchNote] = useState<Record<number, string>>({});
   const [draggedProjectIdx, setDraggedProjectIdx] = useState<number | null>(null);
   const [dragOverProjectIdx, setDragOverProjectIdx] = useState<number | null>(null);
+  const [draggedExpIdx, setDraggedExpIdx] = useState<number | null>(null);
+  const [dragOverExpIdx, setDragOverExpIdx] = useState<number | null>(null);
   
   // LIVE PROJECTS SYNC: Remove redundant fetch on mount as initialData is already version-specific
   // and fetching from /api/projects would corrupt specialized versions with 'Main' data.
@@ -1553,37 +1555,88 @@ export function EditorClient({
         </div>
       )}
 
-      {cv.experience.map((exp, i) => (
-        <div key={i} className="bg-[var(--sclade-card-bg)] border border-[var(--sclade-card-border)] rounded-[2rem] overflow-hidden group hover:border-blue-500/20 transition-all shadow-lg">
-          <div 
-            onClick={() => setExpandedExperience(expandedExperience === i ? null : i)}
-            className="px-6 py-4 flex items-center justify-between bg-[var(--sclade-glass-tint)] cursor-pointer hover:opacity-90 transition-all border-b border-[var(--sclade-card-border)]"
+      {experience.map((exp, i) => {
+        const isCurrentlyDragged = draggedExpIdx === i;
+        const isDraggedOver = dragOverExpIdx === i;
+
+        return (
+          <div
+            key={`exp-${i}`}
+            draggable
+            onDragStart={(e) => {
+              setDraggedExpIdx(i);
+              e.dataTransfer.setData("text/plain", i.toString());
+              e.dataTransfer.effectAllowed = "move";
+            }}
+            onDragEnd={() => {
+              setDraggedExpIdx(null);
+              setDragOverExpIdx(null);
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              if (draggedExpIdx === null || draggedExpIdx === i) return;
+              setDragOverExpIdx(i);
+            }}
+            onDragLeave={() => {
+              setDragOverExpIdx(null);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              const sourceIdx = parseInt(e.dataTransfer.getData("text/plain"), 10);
+              if (isNaN(sourceIdx) || sourceIdx === i) return;
+
+              const updated = [...experience];
+              const [removed] = updated.splice(sourceIdx, 1);
+              updated.splice(i, 0, removed);
+              setExperience(updated);
+
+              setDraggedExpIdx(null);
+              setDragOverExpIdx(null);
+              isDirty.current = true;
+              saveCV();
+            }}
+            className={`bg-[var(--sclade-card-bg)] border border-[var(--sclade-card-border)] rounded-[2rem] overflow-hidden group hover:border-blue-500/20 transition-all duration-300 shadow-lg ${
+              isCurrentlyDragged
+                ? "opacity-30 border-blue-500/50 scale-[0.98]"
+                : isDraggedOver
+                ? "border-blue-500 bg-blue-500/5 translate-y-1"
+                : ""
+            }`}
           >
-            <div className="flex-1 min-w-0 mr-3">
-              <p className="text-sm font-bold text-[var(--sclade-text-primary)] truncate font-outfit">{exp.company || "New Experience"}</p>
-              <div className="flex items-center gap-2 mt-0.5">
-                 <p className="text-[10px] font-black uppercase tracking-widest text-[var(--sclade-text-muted)] group-hover:text-blue-500 transition-colors uppercase truncate">{exp.title || "Position"}</p>
-                 <span className="w-1 h-1 rounded-full bg-neutral-800" />
-                 <p className="text-[10px] font-bold text-[var(--sclade-text-muted)] truncate">{exp.period || "No Dates Set"}</p>
+            <div 
+              onClick={() => setExpandedExperience(expandedExperience === i ? null : i)}
+              className="px-6 py-4 flex items-center justify-between bg-[var(--sclade-glass-tint)] cursor-pointer hover:opacity-90 transition-all border-b border-[var(--sclade-card-border)] relative group/header"
+            >
+              {/* Drag Handle Indicator */}
+              <div className="mr-3 text-neutral-600 group-hover/header:text-neutral-400 cursor-grab active:cursor-grabbing transition-colors self-center flex items-center h-full">
+                <GripVertical className="w-4 h-4 shrink-0" />
+              </div>
+
+              <div className="flex-1 min-w-0 mr-3">
+                <p className="text-sm font-bold text-[var(--sclade-text-primary)] truncate font-outfit">{exp.company || "New Experience"}</p>
+                <div className="flex items-center gap-2 mt-0.5">
+                   <p className="text-[10px] font-black uppercase tracking-widest text-[var(--sclade-text-muted)] group-hover:text-blue-500 transition-colors uppercase truncate">{exp.title || "Position"}</p>
+                   <span className="w-1 h-1 rounded-full bg-neutral-800" />
+                   <p className="text-[10px] font-bold text-[var(--sclade-text-muted)] truncate">{exp.period || "No Dates Set"}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                <button 
+                  onClick={() => removeExperience(i)} 
+                  className="p-2 text-neutral-700 hover:text-red-400 hover:bg-red-500/5 transition-all rounded-xl"
+                  title="Delete Experience"
+                >
+                   <Trash2 className="w-4 h-4" />
+                </button>
+                <button 
+                  onClick={() => setExpandedExperience(expandedExperience === i ? null : i)}
+                  className="p-2 text-[var(--sclade-text-secondary)] hover:text-[var(--sclade-text-primary)] hover:bg-[var(--sclade-input-bg)] rounded-xl transition-all"
+                  title={expandedExperience === i ? "Collapse" : "Expand"}
+                >
+                  {expandedExperience === i ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
               </div>
             </div>
-            <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-              <button 
-                onClick={() => removeExperience(i)} 
-                className="p-2 text-neutral-700 hover:text-red-400 hover:bg-red-500/5 transition-all rounded-xl"
-                title="Delete Experience"
-              >
-                 <Trash2 className="w-4 h-4" />
-              </button>
-              <button 
-                onClick={() => setExpandedExperience(expandedExperience === i ? null : i)}
-                className="p-2 text-[var(--sclade-text-secondary)] hover:text-[var(--sclade-text-primary)] hover:bg-[var(--sclade-input-bg)] rounded-xl transition-all"
-                title={expandedExperience === i ? "Collapse" : "Expand"}
-              >
-                {expandedExperience === i ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
           
           {expandedExperience === i && (
             <div className="p-6 space-y-5">
