@@ -302,6 +302,59 @@ export function SmartUpdateCenter({
       ? projectSuggestions
       : sortedSuggestions;
 
+  if (isCurrentlySyncing && filteredSuggestions.length === 0) {
+    return (
+      <div className="bg-black/20 dark:bg-neutral-900/10 border border-neutral-800 rounded-[2.5rem] p-10 md:p-16 text-center relative overflow-hidden shadow-[0_0_50px_rgba(37,99,235,0.02)]">
+        {/* Glow orbs for high-end look */}
+        <div className="absolute -top-32 -left-32 w-64 h-64 bg-blue-500/5 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute -bottom-32 -right-32 w-64 h-64 bg-blue-500/5 blur-[120px] rounded-full pointer-events-none" />
+        
+        {/* Animated Radar Spinner */}
+        <div className="relative w-20 h-20 mx-auto mb-8 flex items-center justify-center">
+          <div className="absolute inset-0 border-2 border-blue-500/10 rounded-full" />
+          <div className="absolute inset-0 border-2 border-blue-500 rounded-full border-t-transparent animate-spin" />
+          <Zap className="w-8 h-8 text-blue-400 animate-pulse" />
+        </div>
+
+        <h3 className="text-lg font-bold text-white mb-2 font-outfit tracking-tight">AI is Synchronizing GitHub Codebases</h3>
+        <p className="text-[12px] text-neutral-400 max-w-sm mx-auto mb-10 leading-relaxed">
+          Harvesting engineering signals, analyzing repository structures, and synthesizing STAR-method suggestions. This takes up to a minute...
+        </p>
+
+        {/* Dynamic Progress Steps */}
+        <div className="max-w-xs mx-auto text-left space-y-4 border-t border-white/5 pt-8">
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center">
+              <span className="text-[10px] text-green-400 font-bold">✓</span>
+            </div>
+            <span className="text-[11px] font-bold text-neutral-300 uppercase tracking-wider">GitHub Connected</span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center">
+              <Loader2 className="w-3 h-3 text-blue-400 animate-spin" />
+            </div>
+            <span className="text-[11px] font-bold text-blue-400 uppercase tracking-wider">Analyzing Repositories...</span>
+          </div>
+
+          <div className="flex items-center gap-3 opacity-40">
+            <div className="w-5 h-5 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center">
+              <span className="text-[9px] text-neutral-500 font-bold">3</span>
+            </div>
+            <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Extracting Skills</span>
+          </div>
+
+          <div className="flex items-center gap-3 opacity-40">
+            <div className="w-5 h-5 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center">
+              <span className="text-[9px] text-neutral-500 font-bold">4</span>
+            </div>
+            <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Formulating STAR Bullets</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (filteredSuggestions.length === 0 && !isCurrentlySyncing) {
     return (
       <div className="bg-[var(--sclade-card-bg)] border border-[var(--sclade-card-border)] rounded-2xl p-6 text-center">

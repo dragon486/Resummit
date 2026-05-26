@@ -53,6 +53,7 @@ export default async function EditorPage() {
       where: { userId: userId }
     });
 
+    // Provide high-quality example fallback text for first load instead of blank CV preview
     resume = await prisma.resume.create({
       data: {
         userId: userId,
@@ -64,14 +65,64 @@ export default async function EditorPage() {
             personalInfo: {
               name: dbUser.name || "",
               email: dbUser.email || "",
-              github: dbUser.name ? `github.com/${dbUser.name.replace(/\s+/g, '')}` : "",
-              linkedin: "",
+              github: dbUser.githubUsername ? `github.com/${dbUser.githubUsername}` : (dbUser.name ? `github.com/${dbUser.name.replace(/\s+/g, '')}` : ""),
+              linkedin: dbUser.linkedinUrl || "",
               phone: "",
               location: ""
             },
-            summary: "Software engineer focused on building high-impact technical solutions.",
-            // If they have github data, we could pre-sync here, but for now just empty
-            projects: [],
+            summary: "Software engineer focused on building high-impact technical solutions. Demonstrated expertise in building modular tools and systems.",
+            experience: [
+              {
+                company: "Tech Solutions Inc. (Example)",
+                title: dbUser.targetRole || "Software Engineer",
+                period: "2024 - Present",
+                bullets: [
+                  "Led a high-performing agile engineering team to design and deploy scalable backend applications, reducing query latency by 35%.",
+                  "Engineered resilient automated service pipelines and database schemas, maintaining 99.99% system availability under heavy workload profiles.",
+                  "Optimized codebases and refactored core components into clean architectural divisions, reducing overall load bounds and enhancing developer experience."
+                ]
+              },
+              {
+                company: "Innovative Tech Labs (Example)",
+                title: "Software Developer",
+                period: "2022 - 2024",
+                bullets: [
+                  "Collaborated with product designers to build and deploy high-performance user-facing modules and responsive views.",
+                  "Designed and executed standard end-to-end and unit testing processes, boosting baseline code coverage metrics by 25%."
+                ]
+              }
+            ],
+            education: [
+              {
+                degree: "Bachelor of Science in Computer Science (Example)",
+                school: "State University of Technology",
+                year: "2018 - 2022",
+                gpa: "3.85",
+                gpaType: "gpa"
+              }
+            ],
+            achievements: [
+              "Recipient of the Engineering Excellence Award for outstanding contribution to platform scalability and structural optimization.",
+              "Awarded First Place at the national Developer Innovation Hackathon for creating high-performance collaborative workspace solutions."
+            ],
+            skills: {
+              languages: ["TypeScript", "JavaScript", "Python", "SQL"],
+              frameworks: ["React", "Next.js", "Node.js", "Express.js", "Tailwind CSS"],
+              tools: ["Git", "Docker", "AWS", "PostgreSQL", "MongoDB", "Redis"]
+            },
+            projects: [
+              {
+                id: "example-project-1",
+                title: "E-Commerce Microservices Platform (Example)",
+                techStack: ["TypeScript", "NestJS", "RabbitMQ", "Redis", "Docker"],
+                description: "High-throughput microservices architecture built to process real-time catalog search and cart management.",
+                highlights: [
+                  "Designed distributed messaging structures using NestJS and RabbitMQ, scaling parallel request throughput by 40%.",
+                  "Integrated Redis caching mechanisms, dropping database lookup latency to sub-10ms ranges."
+                ],
+                included: true
+              }
+            ]
           }
         }
       },
