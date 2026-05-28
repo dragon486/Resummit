@@ -208,3 +208,27 @@ body {
   fill: var(--logo-flag-banner);
   transition: fill 0.35s cubic-bezier(.22,.61,.36,1);
 }
+
+/* Force dark-theme values and high contrast on hardcoded dark pages */
+.dark-page {
+  --logo-doc-body: #172554 !important;
+  --logo-doc-fold: #1d4ed8 !important;
+  --logo-doc-lines: #3b82f6 !important;
+  --logo-flag-pole: #60a5fa !important;
+  --logo-flag-banner: #60a5fa !important;
+  --logo-text: #ffffff !important;
+  --logo-tagline: #64748b !important;
+}
+
+.dark-page .text-neutral-400 {
+  color: #a3a3a3 !important;
+}
+
+.dark-page .text-neutral-500 {
+  color: #737373 !important;
+}
+
+.dark-page .text-neutral-600 {
+  color: #525252 !important;
+}
+

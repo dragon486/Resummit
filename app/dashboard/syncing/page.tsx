@@ -51,7 +51,7 @@ export default function SyncingPage() {
   }, [session, router]);
 
   return (
-    <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center p-6 text-center">
+    <div className="dark-page min-h-screen bg-neutral-950 flex flex-col items-center justify-center p-6 text-center">
       <div className="w-full max-w-md">
         {/* Animated Progress Ring */}
         <div className="relative w-32 h-32 mx-auto mb-12">
